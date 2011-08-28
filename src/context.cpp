@@ -167,7 +167,7 @@ void Context::eval(Text* input) {
                     if (u < t) {
                         break;
                     }
-                    newContext->add(new Text(NULL));
+                    newContext->add(new Text());
                 }
             }
             theOutput->append('~', u);
@@ -316,7 +316,9 @@ Node* Context::getNode(int argNr)
         }
         n = n->node;
         if (!n) {
-            n = last = new Node(NULL);
+            n = new Node(NULL);
+            last->node = n;  // fixed <~1~> bug -- joh 8/17/11
+            last = n;
         }
         argNr -= 1;
     }
