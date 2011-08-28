@@ -42,14 +42,14 @@ Text::Text(int len) {
 
 // c-string constructor
 
-Text::Text(char* s) {
-    init(s, strlen(s));
+Text::Text(const char* s) {
+    init(s, (int)strlen(s));
 }
 
 
 // string constructor
 
-Text::Text(char* s, int len) {
+Text::Text(const char* s, int len) {
     init(s, len);
 }
 
@@ -98,16 +98,16 @@ void Text::append(int c, int n) {
 
 // append c-string
 
-void Text::append(char* s) {
+void Text::append(const char* s) {
     if (s) {
-        append(s, strlen(s));
+        append(s, (int)strlen(s));
     }
 }
 
 
 // append string
 
-void Text::append(char* s, int len) {
+void Text::append(const char* s, int len) {
     if (s && len) {
         checkMaxLength(len);
         memmove(&string[length], s, len);
@@ -282,11 +282,12 @@ int Text::indexOf(Text *t) {
 }
 
 
-void Text::init(char* s, int len) {
+void Text::init(const char* s, int len) {
     name = NULL;
     link = NULL;
     function = NULL;
-    length = nameLength = myHash = 0;
+    length = nameLength = 0;
+    myHash = 0;
     maxLength = len;
     if (len == 0) {
         string = NULL;
@@ -306,9 +307,9 @@ void Text::input() {
     char buffer[10240];
     int len;
     length = 0;
-    myHash = 0;
+    myHash = (int) 0;
     for (;;) {
-        len = fread(buffer, sizeof(char), sizeof(buffer), stdin);
+        len = (int) fread(buffer, sizeof(char), sizeof(buffer), stdin);
         if (len <= 0) {
             break;
         }
@@ -319,7 +320,7 @@ void Text::input() {
 
 // is c-string
 
-bool Text::is(char* s) {
+bool Text::is(const char* s) {
     int i;
     for (i = 0; i < length; i += 1) {
         if (string[i] != s[i]) {
@@ -428,7 +429,7 @@ bool Text::read(Text* filename) {
     fp = fopen(buffer, "rb");
     if (fp) {
         for (;;) {
-            len = fread(buffer, sizeof(char), sizeof(buffer), fp);
+            len = (int) fread(buffer, sizeof(char), sizeof(buffer), fp);
             if (len <= 0) {
                 break;
             }
@@ -474,14 +475,14 @@ void Text::set(Text* t) {
 
 // set name with c-string
 
-void Text::setName(char* s) {
-    setName(s, strlen(s));
+void Text::setName(const char* s) {
+    setName(s, (int) strlen(s));
 }
 
 
 // set name with string
 
-void Text::setName(char* s, int len) {
+void Text::setName(const char* s, int len) {
     delete name;
     nameLength = len;
     name = new char[nameLength];

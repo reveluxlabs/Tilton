@@ -19,13 +19,20 @@
 #include "context.h"
 #include "node.h"
 
+#include <iostream>
+using namespace std ;
+
+static void addFunction(const char*, void (* function)(Context *));
+static void addMacro(const char* , const char* );
+Text* find( Text* );
+
 // MAXHASH is the largest index in the hash table. It must be (2**n)-1.
 
 #define MAXHASH 1023
 
 static Text* theMacroList[MAXHASH + 1];
 
-extern Text* theOutput = NULL;
+Text* theOutput = NULL;
 
 static number theSequenceNumber = 1000;
 
@@ -41,7 +48,7 @@ static void link(Text* name, Text* t) {
 //  addFunction is used by main to add primitive functions to tilton.
 //  A function operates on a context which supplies the parameters. 
 
-void addFunction(char* namestring, void(*function)(Context* context)) {
+static void addFunction(const char* namestring, void (*function)(Context * )) {
     Text* t = new Text();
     Text* name = new Text(namestring);
     link(name, t);
@@ -53,7 +60,7 @@ void addFunction(char* namestring, void(*function)(Context* context)) {
 //  addMacro -- This is a little faster than set() because it assumes that
 //  the name is not already in the macro list.
 
-void addMacro(char* namestring, char* string) {
+static void addMacro(const char* namestring, const char* string) {
     Text* name = new Text(namestring);
     link(name, new Text(string));
     delete name;
@@ -63,7 +70,7 @@ void addMacro(char* namestring, char* string) {
 //  find - search through the macro list for a text with a specific name.
 //  The list is a hash table with links for collisions.
 
-extern Text* find(Text* name) {
+Text* find(Text* name) {
     Text* t = theMacroList[name->hash() & MAXHASH];
     while (t) {
         if (t->isName(name)) {
@@ -93,11 +100,11 @@ static void set(Text* name, Text* value) {
 
 static void reduce(Context* context, number num, number (*f)(number, number))
 {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     if (n) {
         if (num == NAN) {
             num = context->evalNumber(n);
-            n = n->node;
+            n = n->next;
         }
         if (n) {
             for (;;) {
@@ -110,7 +117,7 @@ static void reduce(Context* context, number num, number (*f)(number, number))
                     break;
                 }
                 num = f(num, d);
-                n = n->node;
+                n = n->next;
             }
         }
     }
@@ -148,17 +155,17 @@ static void test(Context* context, int (*f)(Text*, Text*))
 {
     Node* c;
     Node* t;
-    Node* s = context->node->node;
+    Node* s = context->node->next;
     if (!s) {
         context->error("No parameters");
         return;
     }
     Text* swich = context->evalArg(s);
-    c = s->node;
+    c = s->next;
     if (!c) {
         context->error("Too few parameters");
     }
-    t = c->node;
+    t = c->next;
     if (!t) {
         context->error("Too few parameters");
     }
@@ -167,11 +174,11 @@ static void test(Context* context, int (*f)(Text*, Text*))
             theOutput->append(context->evalArg(t));
             return;
         }
-        c = t->node;
+        c = t->next;
         if (!c) {
             return;  // empty else
         }
-        t = c->node;
+        t = c->next;
         if (!t) {    // else
             theOutput->append(context->evalArg(c));
             return;
@@ -223,14 +230,14 @@ static void tilton_add(Context* context) {
 //  tilton and
 
 static void tilton_and(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     Text* t = NULL;
     while (n) {
         t = context->evalArg(n);
         if (t->length == 0) {
             return;
         } 
-        n = n->node;
+        n = n->next;
     }
     theOutput->append(t);
 }
@@ -239,7 +246,7 @@ static void tilton_and(Context* context) {
 //  tilton append
 
 static void tilton_append(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     if (n == NULL) {
         context->error("Missing name");
     }
@@ -256,7 +263,7 @@ static void tilton_append(Context* context) {
         theMacroList[h] = t;
     }
     for (;;) {
-        n = n->node;
+        n = n->next;
         if (!n) {
             break;
         }
@@ -288,7 +295,7 @@ static void tilton_defined_(Context* context) {
 //  tilton delete
 
 static void tilton_delete(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     while (n) {
         Text* name = context->evalArg(n);
         Text* t = theMacroList[name->hash() & MAXHASH];
@@ -306,7 +313,7 @@ static void tilton_delete(Context* context) {
             u = t;
             t = t->link;
         }
-        n = n->node;
+        n = n->next;
     }
 }
 
@@ -402,7 +409,7 @@ static void tilton_eval(Context* context) {
 //  tilton first
 
 static void tilton_first(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     Text* name = context->evalArg(n);
     if (name->length < 1) {
         context->error("Missing name: first");
@@ -416,7 +423,7 @@ static void tilton_first(Context* context) {
     int   len = 0;
     int   r = string->length;
     for (;;) {
-        n = n->node;
+        n = n->next;
         if (!n) {
             break;
         }
@@ -456,7 +463,7 @@ static void tilton_gensym(Context* context) {
 //  tilton get
 
 static void tilton_get(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     while (n) {
         Text* name = context->evalArg(n);
         Text* macro = find(name);
@@ -465,7 +472,7 @@ static void tilton_get(Context* context) {
         } else {
             context->error("Undefined variable", name);
         }
-        n = n->node;
+        n = n->next;
     }
 }
 
@@ -480,7 +487,7 @@ static void tilton_gt_(Context* context) {
 //  tilton include
 
 static void tilton_include(Context* context) {
-    Node* n = context->node->node;
+    // Node* n = context->node->next;
     Text* string = new Text();
     Text* name = context->evalArg(1);
     if (!string->read(name)) {
@@ -504,7 +511,7 @@ static void tilton_include(Context* context) {
 //  tilton last
 
 static void tilton_last(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     Text* name = context->evalArg(1);
     if (name->length < 1) {
         context->error("Missing name");
@@ -518,7 +525,7 @@ static void tilton_last(Context* context) {
     int   len = 0;
     int   r = 0;
     for (;;) {
-        n = n->node;
+        n = n->next;
         if (!n) {
             break;
         }
@@ -565,7 +572,7 @@ static void tilton_literal(Context* context) {
 //  is not null.
 
 static void tilton_loop(Context* context) {
-    Node* n = context->node->node;
+    // Node* n = context->node->next;
     while (context->evalArg(1)->length > 0) {
         context->resetArg(1); 
         context->resetArg(2);
@@ -598,10 +605,10 @@ static void tilton_mult(Context* context) {
 //  tilton mute
 
 static void tilton_mute(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     while (n) {
         context->evalArg(n);
-        n = n->node;
+        n = n->next;
     }
 }
 
@@ -631,14 +638,14 @@ static void tilton_number_(Context* context) {
 //  tilton or
 
 static void tilton_or(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     Text* t = NULL;
     while (n) {
         t = context->evalArg(n);
         if (t->length) {
             break;
         } 
-        n = n->node;
+        n = n->next;
     }
     theOutput->append(t);
 }
@@ -667,7 +674,7 @@ static void tilton_read(Context* context) {
 // tilton rep
 
 static void tilton_rep(Context* context) {
-    Node* n = context->node->node;
+    // Node* n = context->node->next;
     Text* value = context->evalArg(1);
     for (number num = context->evalNumber(2); num > 0; num -= 1) {
         theOutput->append(value);
@@ -725,16 +732,16 @@ static void tilton_sub(Context* context) {
 //  tilton substr
 
 static void tilton_substr(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     Text* string = context->evalArg(n);
-    n = n->node;
+    n = n->next;
     if (n) {
         number num = context->evalNumber(n);
         if (num < 0) {
             num += string->length;
         }
         number ber = INFINITY;
-        n = n->node;
+        n = n->next;
         if (n) {
             ber = context->evalNumber(n);
         }
@@ -749,10 +756,10 @@ static void tilton_substr(Context* context) {
 //  tilton trim
 
 static void tilton_trim(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     while (n) {
         theOutput->trim(context->evalArg(n));
-        n = n->node;
+        n = n->next;
     }
 }
 
@@ -760,7 +767,7 @@ static void tilton_trim(Context* context) {
 //  tilton unicode
 
 static void tilton_unicode(Context* context) {
-    Node* n = context->node->node;
+    Node* n = context->node->next;
     while (n) {
         number num = context->evalNumber(n);
         if (num >= 0) {
@@ -784,7 +791,7 @@ static void tilton_unicode(Context* context) {
             context->error("Bad character code", context->evalArg(n));
             return;
         }
-        n = n->node;
+        n = n->next;
     }
 }
 
@@ -802,11 +809,12 @@ static void tilton_write(Context* context) {
 // main processes the command line arguments and evaluates the standard
 // input.
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char * argv[]) 
+{
     bool go = true;
     Text* name = NULL;
     Text* string = NULL;
-    char* arg;
+    const char* arg;
     int i = 0; // index of argv
     int j = 0; // index of context parameter
     Context* context = new Context(NULL, NULL);
@@ -863,6 +871,8 @@ int main(int argc, char* argv[]) {
 
 // process the command line arguments
 
+//    cout << "MAIN: Processing args" << endl ;
+    
     i = 0;
     while (i < argc) {
         arg = argv[i];
@@ -1009,13 +1019,16 @@ int main(int argc, char* argv[]) {
 // Process the input
 
     if (go) {
+//        cout << "MAIN: reading stdin" << endl ;
         in->input();
         in->setName("[standard input]");
+//        cout << "MAIN: Starting eval" << endl ;
         context->eval(in);
     }
 
 // and finally
 
+//    cout << "MAIN: Writing output" << endl ;
     theOutput->output();
     return 0;
 }

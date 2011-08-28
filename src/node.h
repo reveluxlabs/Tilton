@@ -24,7 +24,7 @@ public:
 
     Text*   text;
     Text*   value;
-    Node*   node;
+    Node*   next;
 };
 
 #endif // __NODE_H_

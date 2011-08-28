@@ -53,20 +53,20 @@ Context::~Context() {
 
 // add a c-string to a context
 
-void Context::add(char* s) {
+void Context::add(const char* s) {
     add(new Text(s));
 }
 
 //  add an argument to a context
 
 void Context::add(Text* t) {
-    Node* n = new Node(t);
+    Node* p = new Node(t);
     if (last) {
-        last->node = n;
+        last->next = p;
     } else {
-        node = n;
+        node = p;
     }
-    last = n;
+    last = p;
 }
 
 
@@ -80,12 +80,12 @@ void Context::dump() {
 
 // Write a message to stderr and then exit.
 
-void Context::error(char* reason) {
+void Context::error(const char* reason) {
     error(reason, NULL);
 }
 
 
-void Context::error(char* reason, Text* evidence) {
+void Context::error(const char* reason, Text* evidence) {
     Text* report = new Text(80);
     whereError(report);
     report->append(reason);
@@ -113,17 +113,9 @@ void Context::error(char* reason, Text* evidence) {
 //  time.
 
 void Context::eval(Text* input) {
-    int a;     // argument number
-    int c;     // current character
-    int d = 0; // depth of nested <~ ~>
-    int i;     // loop counter
-    Node* n;   // current node
-    Node* o;   // another node
-    Text* s;   // current text
-    int t = 0; // the number of tildes in the separator ~~~
-    int u;     // the number of tildes currently under consideration
-    Text* macro;
-    Text* name;
+    int c;                 // current character
+    int depth = 0;         // depth of nested <~ ~>
+    int tildesSeen= 0;     // the number of tildes in the separator ~~~
     Context* newContext = NULL;
     Iter* in = new Iter(input);
 
@@ -132,129 +124,154 @@ void Context::eval(Text* input) {
     for (;;) {
         switch ((c = in->next())) {
 
-//  <~
         case '<':
-            u = 0;
-            while (in->next() == '~') {
-                u += 1;
-            }
-            in->back();
-            if (d) {
-                if (u) {
-                    d += 1;
-                } 
-                theOutput->append('<');
-                theOutput->append('~', u);
-            } else if (u) {
-                d = 1;
-                t = u;
-                newContext = new Context(this, in);
-                newContext->position = theOutput->length;
-            } else {
-                theOutput->append('<');
-            }
+            this->evalAngle(in, depth, theOutput, tildesSeen, newContext);
             break;
 
-//  ~
         case '~':
-            for (u = 1; in->next() == '~'; u += 1) {
-            }
-            in->back();
-            if (d == 1 && u >= t) {
-                newContext->add(theOutput->tail(newContext->position));
-                for (;;) {
-                    u -= t;
-                    if (u < t) {
-                        break;
-                    }
-                    newContext->add(new Text());
-                }
-            }
-            theOutput->append('~', u);
-            if (in->peek() == '>') {
-//  ~>
-                in->next();
-                if (d) {
-                    d -= 1;
-                    if (d) {
-                        theOutput->append('>');
-                    } else {
-                        if (u) {
-                            newContext->error("Short ~>");
-                        }
-//    apply:           
-                        n = newContext->node;
-//    <~NUMBER~>
-                        s = n->text;
-                        a = s->get(0) - '0';
-                        if (a >= 0 && a <= 9) {
-                            for (i = 1; i < s->length; i += 1) {
-                                c = s->get(0) - '0';
-                                if (c < 0 || c > 9) {
-                                    a = -1;
-                                    break;
-                                }
-                                a = a * 10 + c;
-                            }
-                            if (a >= 0) {
-                                if (!n->node) { 
-                                    theOutput->append(this->evalArg(a));
-                                } else {
-//    <~NUMBER~value~>
-                                    n = newContext->getNode(a);
-                                    if (!n->value) {
-                                        n = newContext->getNode(1);
-                                        this->eval(n->text);
-                                        n->value = theOutput->tail(newContext->position);
-                                    }
-                                    o = this->getNode(a);
-                                    delete o->text;
-                                    o->text = NULL;
-                                    delete o->value;
-                                    o->value[a] = new Text(n->value);
-                                }
-                                delete newContext;
-                                break;
-                            }
-                        }
-//    look up
-                        name = newContext->evalArg(0);
-                        macro = find(name);
-                        if (macro) {
-                            if (macro->function) {
-                                macro->function(newContext);
-                            } else {
-                                newContext->eval(macro);
-                            }
-                        } else {
-//    undefined
-                            newContext->error("Undefined macro");
-                        }
-                        delete newContext;
-                        newContext = NULL;
-                    }
-                } else {
-                    (new Context(this, in))->error("Extra ~>");
-                }
-            }
+            this->evalTilde(in, depth, theOutput, tildesSeen, newContext);
             break;
 
-// end of text
         case EOT:
-            if (d) {
-                newContext->error("Missing ~>");
-            }
-            delete in;
+            this->evalEOT(in, depth, theOutput, tildesSeen, newContext);
             return;
 
 // literal character
         default:
-            theOutput->append(c);
+            theOutput->addToString(c);
             break;
         }
     }
 }
 
+void Context::evalAngle(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext)
+{
+    int runLength;     // the number of tildes currently under consideration
+    
+    runLength = checkForTilde(in, 0);
+    
+    if (!stackEmpty(depth)) {
+        if (runLength) {
+            depth += 1;
+        } 
+        theOutput->addToString('<');
+        theOutput->addToString('~', runLength);
+    } else if (runLength) {
+        depth = 1;
+        tildesSeen = runLength;
+        newContext = new Context(this, in);
+        newContext->position = theOutput->length;
+    } else {
+        theOutput->addToString('<');
+    }
+}
+
+void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext)
+{
+    int argNo;         // argument number
+    int c;             // current character
+    int i;             // loop counter
+    Node* n;           // current node
+    Node* o;           // another node
+    Text* s;           // current text
+    int runLength;     // the number of tildes currently under consideration
+
+    runLength = checkForTilde(in, 1);
+    
+    if (depth == 1 && runLength >= tildesSeen) {
+        newContext->add(theOutput->removeFromString(newContext->position));
+        for (;;) {
+            runLength -= tildesSeen;
+            if (runLength < tildesSeen) break;
+            newContext->add(new Text());
+        }
+    }
+    
+    theOutput->addToString('~', runLength);
+    
+    if (in->peek() == '>') {
+        //  ~>
+        in->next();
+        if (!stackEmpty(depth)) {
+            depth -= 1;
+            if (!stackEmpty(depth)) {
+                theOutput->addToString('>');
+            } else {
+                if (runLength) {
+                    newContext->error("Short ~>");
+                }
+                //    apply:           
+                n = newContext->node;
+                //    <~NUMBER~>
+                s = n->text;
+                argNo = s->get(0) - '0';
+                if (isDigit(argNo)) {
+                    for (i = 1; i < s->length; i += 1) {
+                        c = s->get(0) - '0';
+                        if (c < 0 || c > 9) {
+                            argNo = -1;
+                            break;
+                        }
+                        argNo = argNo * 10 + c;
+                    }
+                    if (argNo >= 0) {
+                        if (!n->next) { 
+                            theOutput->addToString(this->evalArg(argNo));
+                        } else {
+                            //    <~NUMBER~value~>
+                            n = newContext->getNode(argNo);
+                            if (!n->value) {
+                                n = newContext->getNode(1);
+                                this->eval(n->text);
+                                n->value = theOutput->removeFromString(newContext->position);
+                            }
+                            o = this->getNode(argNo);
+                            delete o->text;
+                            o->text = NULL;
+                            delete o->value;
+                            o->value[argNo] = new Text(n->value);
+                        }
+                        delete newContext;
+                        return;
+                    }
+                }
+                //    look up
+                Context::evalMacro(newContext);
+            }
+        } else {
+            (new Context(this, in))->error("Extra ~>");
+        }
+    }    
+}
+
+void Context::evalMacro(Context* &newContext)
+{
+    Text* macro;
+    Text* name;
+    
+    name = newContext->evalArg(0);
+    macro = find(name);
+    if (macro) {
+        if (macro->function) {
+            macro->function(newContext);
+        } else {
+            newContext->eval(macro);
+        }
+    } else {
+        //    undefined
+        newContext->error("Undefined macro");
+    }
+    delete newContext;
+    newContext = NULL;    
+}
+
+void Context::evalEOT(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext)
+{
+    if (depth) {
+        newContext->error("Missing ~>");
+    }
+    delete in;
+}
 
 //  evalArg - Get an argument of a macro. If we have already determined its 
 //  value, then simply return it. Otherwise, evaluate the argument to obtain
@@ -278,7 +295,7 @@ Text* Context::evalArg(Node* n)
         Text* arg = n->text;
         int position = theOutput->length;
         this->previous->eval(arg);
-        n->value = theOutput->tail(position);
+        n->value = theOutput->removeFromString(position);
     }
     return n->value;
 }
@@ -305,20 +322,20 @@ number Context::evalNumber(Node* n)
 
 Node* Context::getNode(int argNr)
 {
-    Node* n;
+    Node* p;
     if (!node) {
         node = last = new Node(NULL);
     }
-    n = node;
+    p = node;
     for (;;) {
         if (!argNr) {
-            return n;
+            return p;
         }
-        n = n->node;
-        if (!n) {
-            n = new Node(NULL);
-            last->node = n;  // fixed <~1~> bug -- joh 8/17/11
-            last = n;
+        p = p->next;
+        if (!p) {
+            p = new Node(NULL);
+            last->next = p;  // fixed <~1~> bug -- joh 8/17/11
+            last = p;
         }
         argNr -= 1;
     }

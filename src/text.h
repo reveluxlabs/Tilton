@@ -21,15 +21,15 @@ class Text {
 public:
     Text();
     Text(int len);
-    Text(char* s);
-    Text(char* s, int len);
+    Text(const char* s);
+    Text(const char* s, int len);
     Text(Text* t);
     virtual ~Text();
 
     void    append(int c);
     void    append(int c, int n);
-    void    append(char* s);
-    void    append(char* s, int len);
+    void    append(const char* s);
+    void    append(const char* s, int len);
     void    append(Text* t);
     void    appendNumber(number);
     void    dump();
@@ -38,7 +38,7 @@ public:
     uint32  hash();
     int     indexOf(Text* t);
     void    input();
-    bool    is(char* s);
+    bool    is(const char* s);
     bool    is(Text* t);
     bool    isName(Text* t);
     int     lastIndexOf(Text* t);
@@ -47,8 +47,8 @@ public:
     bool    read(Text* t);
     void    set(int index, int c);
     void    set(Text* t);
-    void    setName(char* s);
-    void    setName(char* s, int len);
+    void    setName(const char* s);
+    void    setName(const char* s, int len);
     void    setName(Text* t);
     void    substr(int start, int len);
     Text*   tail(int index);
@@ -57,6 +57,25 @@ public:
     Text*   utfSubstr(int start, int len);
     bool    write(Text* t);
 
+    void    addToString(char c)
+    {
+        this->append(c);
+    }
+    void    addToString(char c, int i)
+    {
+        this->append(c, i);
+    }
+    void    addToString(Text* s)
+    {
+        if (s) {
+            this->append(s->string, s->length);
+        }
+    }
+    Text*    removeFromString(int i)
+    {
+        return this->tail(i);
+    }
+    
     Op      function;
     int     length;
     Text*   link;       // hash collisions
@@ -67,7 +86,7 @@ public:
 
 private:
     void    checkMaxLength(int len);
-    void    init(char* s, int len);
+    void    init(const char* s, int len);
 
     uint32     myHash;
 };

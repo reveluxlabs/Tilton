@@ -20,14 +20,14 @@ Node::Node(Text* t)
 {
     text = t;
     value = NULL;
-    node = NULL;
+    next = NULL;
 }
 
 Node::~Node(void)
 {
     delete this->text;
     delete this->value;
-    delete this->node;
+    delete this->next;
 }
 
 void Node::dump() 
@@ -35,8 +35,8 @@ void Node::dump()
     if (text) {
         fwrite(text->string, sizeof(char), text->length, stderr);
     }
-    if (node) {
+    if (next) {
         fputc('~', stderr);
-        node->dump();
+        next->dump();
     }
 }
