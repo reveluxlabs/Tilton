@@ -68,6 +68,24 @@ describe "A  command line macro process (in general)" do
     result.should.include "3"
   end
 
+  it "should process the define macro" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~define~EOF~-1~><~EOF~>" | ./tilton ]
+    # verify results
+    result.should.include "-1"
+  end
+
+  it "should process the defines lazily" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~define~x~1~><~define~y~x~><~y~>" | ./tilton ]
+    # verify results
+    result.should.include "x"
+  end
+
   it "should process the read macro" do
     # setup fixture
     # execute SUT

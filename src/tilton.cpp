@@ -24,7 +24,7 @@ using namespace std ;
 
 static void addFunction(const char*, void (* function)(Context *));
 static void addMacro(const char* , const char* );
-Text* find( Text* );
+Text* lookup( Text* );
 
 // MAXHASH is the largest index in the hash table. It must be (2**n)-1.
 
@@ -57,7 +57,7 @@ static void addFunction(const char* namestring, void (*function)(Context * )) {
 }
 
 
-//  addMacro -- This is a little faster than set() because it assumes that
+//  addMacro -- This is a little faster than install() because it assumes that
 //  the name is not already in the macro list.
 
 static void addMacro(const char* namestring, const char* string) {
@@ -67,10 +67,10 @@ static void addMacro(const char* namestring, const char* string) {
 }
 
 
-//  find - search through the macro list for a text with a specific name.
+//  lookup - search through the macro list for a text with a specific name.
 //  The list is a hash table with links for collisions.
 
-Text* find(Text* name) {
+Text* lookup(Text* name) {
     Text* t = theMacroList[name->hash() & MAXHASH];
     while (t) {
         if (t->isName(name)) {
@@ -82,12 +82,12 @@ Text* find(Text* name) {
 }
 
 
-//  set - if there is a text in the macro list with this name, set its
+//  install - if there is a text in the macro list with this name, set its
 //  value. Otherwise, make a new text with this name and value and put
 //  it in the list.
 
-static void set(Text* name, Text* value) {
-    Text* t = find(name);
+static void install(Text* name, Text* value) {
+    Text* t = lookup(name);
     if (t) {
         t->set(value);
     } else {
@@ -254,7 +254,7 @@ static void tilton_append(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    Text* t = find(name);
+    Text* t = lookup(name);
     if (!t) {
         t = new Text(0);
         uint32 h = name->hash() & MAXHASH;
@@ -281,14 +281,14 @@ static void tilton_define(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    set(name, theOutput->tail(position));
+    install(name, theOutput->tail(position));
 }
 
 
 //  tilton defined?
 
 static void tilton_defined_(Context* context) {
-    theOutput->append(context->evalArg(find(context->evalArg(1)) ? 2 : 3));
+    theOutput->append(context->evalArg(lookup(context->evalArg(1)) ? 2 : 3));
 }
 
 
@@ -414,7 +414,7 @@ static void tilton_first(Context* context) {
     if (name->length < 1) {
         context->error("Missing name: first");
     }
-    Text* string = find(name);
+    Text* string = lookup(name);
     if (!string) {
         context->error("Undefined variable", name);
         return;
@@ -466,7 +466,7 @@ static void tilton_get(Context* context) {
     Node* n = context->node->next;
     while (n) {
         Text* name = context->evalArg(n);
-        Text* macro = find(name);
+        Text* macro = lookup(name);
         if (macro) {
             theOutput->append(macro);
         } else {
@@ -516,7 +516,7 @@ static void tilton_last(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    Text* string = find(name);
+    Text* string = lookup(name);
     if (!string) {
         context->error("Undefined variable", name);
         return;
@@ -688,7 +688,7 @@ static void tilton_set(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    set(name, context->evalArg(2));
+    install(name, context->evalArg(2));
 }
 
 
@@ -972,7 +972,7 @@ int main(int argc, const char * argv[])
                     i += 1;
                     string = new Text(argv[i]);
                     i += 1;
-                    set(name, string);
+                    install(name, string);
                     delete name;
                     delete string;
                 } else {

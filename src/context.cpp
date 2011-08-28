@@ -25,7 +25,7 @@
 #include "node.h"
 
 extern Text* theOutput;
-extern Text* find(Text* name);
+extern Text* lookup(Text* name);
 
 
 Context::Context(Context* prev, Iter* s) {
@@ -250,7 +250,7 @@ void Context::evalMacro(Context* &newContext)
     Text* name;
     
     name = newContext->evalArg(0);
-    macro = find(name);
+    macro = lookup(name);
     if (macro) {
         if (macro->function) {
             macro->function(newContext);
