@@ -1,0 +1,59 @@
+/ head.snip
+/ starting pos: 1
+
+!!! 5
+%html{:lang => "en-US"}
+  %head
+    %title <~1~>
+    %meta{:charset => "utf-8"}
+    %meta{:content => "Building Smarter Software", :name => "description"}/
+    %meta{:content => "JR", :name => "author"}/
+    %meta{:content => "width=device-width, initial-scale=1.0, minimum-scale=1.0", :name => "viewport"}/
+    / enable HTML5 in IE
+    /[if lt IE 9]
+      %script{:src => "http://html5shiv.googlecode.com/svn/trunk/html5.js"}
+    / load typekit
+    %script{:type => "text/javascript", :src => "http://use.typekit.com/rpp8ofu.js"}
+    :javascript
+      try{Typekit.load();}catch(e){}
+        
+    / load mint
+    %script{ :src => "http://www.reveluxlabs.com/mint/?js", :type => "text/javascript"}
+
+    / STYLES
+    %link{:href => "c/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+    %link{:href => "c/mediaqueries.css", :media => "screen", :rel => "stylesheet", :type => "text/css"}
+    /[if IE]
+      %link{:href => "c/ie.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+
+  %body.<~2~>
+    .page.revelux
+      .enclose.reveluxMargin
+        %header.line{:role => "banner"}
+          .logo.unit.size1of3
+            %a{:href => "index.html"}
+              %img{:src => "i/logo_236x64.png", :alt => "Revelux Labs logo"}
+          %nav.unit.size2of3.lastUnit{:role => "navigation"} 
+            %ul.line.nav-list.man 
+              %li.unit.size1of5<~3~>
+                %a{:href => "index.html"}
+                  %strong 
+                    Front
+                    %em the latest
+              %li.unit.size1of5<~4~>
+                %a{:href => "views.html"}
+                  %strong 
+                    Views
+                    %em essays
+              %li.unit.size1of5<~5~>
+                %a{:href => "labnotes.html"}
+                  %strong 
+                    Notes
+                    %em tech stuff
+              %li.unit.size1of5<~6~>
+                %a{:href => "connect.html"}
+                  %strong 
+                    Connect
+                    %em talk to us
+          %hr/
+          / /header
