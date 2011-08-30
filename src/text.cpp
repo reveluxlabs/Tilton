@@ -392,6 +392,7 @@ int Text::lastIndexOf(Text *t) {
 bool Text::lt(Text* t) {
     int len = t->length;
     if (len > length) {
+        // return true;   // joh 28Aug11
         len = length;
     }
     for (int i = 0; i < len; i += 1) {
