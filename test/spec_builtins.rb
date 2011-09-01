@@ -12,6 +12,15 @@ describe "A command line macro processor (in general)" do
     result.should.include "6"
   end
 
+  it "should produce an error msg on the add builtin with a bad arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~add~1~Tilton~3~>" | ./tilton ]
+    # verify results
+    result.should.include "<~add~> Not a number: Tilton"
+  end
+
   it "should process the add builtin with a macro arg" do
     # setup fixture
     # execute SUT
@@ -19,6 +28,15 @@ describe "A command line macro processor (in general)" do
     result = %x[ echo "<~1~3~><~add~1~2~<~1~>~>" | ./tilton ]
     # verify results
     result.should.include "6"
+  end
+
+  it "should process the add builtin with an undefined macro arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~add~1~2~<~1~>~>" | ./tilton ]
+    # verify results
+    result.should.include "<~add~> Not a number: "
   end
 
   it "should process the and builtin" do
@@ -30,7 +48,25 @@ describe "A command line macro processor (in general)" do
     result.should.include "3"
   end
 
-  it "should process the append builtin" do
+  it "should process the and builtin with a macro arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~1~3~><~and~1~2~<~1~>~>" | ./tilton ]
+    # verify results
+    result.should.include "3"
+  end
+
+  it "should process the and builtin with an undefined macro arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~and~1~2~<~1~>~>" | ./tilton ]
+    # verify results
+    result.should.equal "\n"
+  end
+
+ it "should process the append builtin" do
     # setup fixture
     # execute SUT
     # appends a newline
@@ -55,6 +91,96 @@ describe "A command line macro processor (in general)" do
     result = %x[ echo "<~define~x~1~><~define~y~x~><~y~>" | ./tilton ]
     # verify results
     result.should.include "x"
+  end
+
+  it "should return the true value for the defined? builtin when the macro exists" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~define~EOF~-1~><~defined?~EOF~yes~no~>" | ./tilton ]
+    # verify results
+    result.should.include "yes"
+  end
+
+  it "should return the false value for the defined? builtin when the macro does not exist" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~defined?~EOF~yes~no~>" | ./tilton ]
+    # verify results
+    result.should.include "no"
+  end
+
+  it "should process the delete builtin when the macro exists" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~define~EOF~-1~><~delete~EOF~><~EOF~>" | ./tilton ]
+    # verify results
+    result.should.include "Undefined macro"
+  end
+
+  it "should process the delete builtin when the variable exists" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~define~1~-1~><~delete~1~><~1~>" | ./tilton ]
+    # verify results
+    result.should.equal "\n"
+  end
+
+  it "should process the delete builtin when the variable does not exist" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~delete~1~><~1~>" | ./tilton ]
+    # verify results
+    result.should.equal "\n"
+  end
+
+  it "should process the div builtin" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~div~6~3~>" | ./tilton ]
+    # verify results
+    result.should.include "2"
+  end
+
+  it "should produce an error msg on the div builtin with a bad arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~div~6~Tilton~>" | ./tilton ]
+    # verify results
+    result.should.include "<~div~> Not a number: Tilton"
+  end
+
+  it "should produce an error msg on the div builtin dividing by zero" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~div~6~0~>" | ./tilton ]
+    # verify results
+    result.should.equal "\n"
+  end
+
+  it "should process the div builtin with a macro arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~1~3~><~div~6~<~1~>~>" | ./tilton ]
+    # verify results
+    result.should.include "2"
+  end
+
+  it "should process the div builtin with an undefined macro arg" do
+    # setup fixture
+    # execute SUT
+    # appends a newline
+    result = %x[ echo "<~div~6~<~1~>~>" | ./tilton ]
+    # verify results
+    result.should.include "<~div~> Not a number: "
   end
 
   it "should process the get builtin" do

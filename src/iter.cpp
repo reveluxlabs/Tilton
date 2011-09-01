@@ -33,7 +33,7 @@ int Iter::back() {
     if (text) {
         index -= 1;
         character -= 1;
-        return text->get(index);
+        return text->getChar(index);
     } else {
         return EOT;
     }
@@ -44,10 +44,10 @@ int Iter::back() {
 
 int Iter::next() {
     if (text) {
-        int c = text->get(index);
+        int c = text->getChar(index);
         index += 1;
         character += 1;
-        if (c == '\n' || (c == '\r' && text->get(index) != '\n')) {
+        if (c == '\n' || (c == '\r' && text->getChar(index) != '\n')) {
             line += 1;
             character = 0;
         }
@@ -62,7 +62,7 @@ int Iter::next() {
 
 int Iter::peek() {
     if (text) {
-        return text->get(index);
+        return text->getChar(index);
     } else {
         return EOF;
     }

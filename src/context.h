@@ -50,16 +50,16 @@ private:
     void    evalAngle(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext);
     void    evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext);    
     void    evalEOT(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext);
-    void evalMacro(Context* &newContext);
-    bool isDigit(int argNo)
+    void    evalMacro(Context* &newContext);
+    bool    isDigit(int argNo)
     {
         return argNo >= 0 && argNo <= 9;
     }
-    bool stackEmpty(int depth)
+    bool    stackEmpty(int depth)
     {
         return depth == 0;
     }
-    int checkForTilde(Iter* in, int no)
+    int     checkForTilde(Iter* in, int no)
     {
         while (in->next() == '~') {
             no += 1;
@@ -67,6 +67,8 @@ private:
         in->back();
         return no;
     }
+    void     evalTextForArg(int argNo, Context* &newContext, Text* &theOutput);
+    void     setMacroVariable(int varNo, Text* t);
 };
 
 #endif // __CONTEXT_H_

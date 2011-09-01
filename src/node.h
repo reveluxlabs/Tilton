@@ -25,6 +25,12 @@ public:
     Text*   text;
     Text*   value;
     Node*   next;
+
+    
+    bool hasValue()
+    {
+      return this->value != 0;
+    }
 };
 
 #endif // __NODE_H_

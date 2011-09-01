@@ -348,7 +348,7 @@ static void tilton_entityify(Context* context) {
     int i;
     if (t && t->length) {
         for (i = 0; i < t->length; i += 1) {
-            c = t->get(i);
+            c = t->getChar(i);
             switch (c) {
             case '&':
                 theOutput->append("&amp;");
@@ -701,7 +701,7 @@ static void tilton_slashify(Context* context) {
     int i;
     if (t && t->length) {
         for (i = 0; i < t->length; i += 1) {
-            c = t->get(i);
+            c = t->getChar(i);
             switch (c) {
             case '\\': // backslash
             case '\'': // single quote

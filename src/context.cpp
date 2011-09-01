@@ -172,7 +172,6 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, 
     int c;             // current character
     int i;             // loop counter
     Node* n;           // current node
-    Node* o;           // another node
     Text* s;           // current text
     int runLength;     // the number of tildes currently under consideration
 
@@ -204,10 +203,10 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, 
                 n = newContext->node;
                 //    <~NUMBER~>
                 s = n->text;
-                argNo = s->get(0) - '0';
+                argNo = s->getChar(0) - '0';
                 if (isDigit(argNo)) {
                     for (i = 1; i < s->length; i += 1) {
-                        c = s->get(0) - '0';
+                        c = s->getChar(0) - '0';
                         if (c < 0 || c > 9) {
                             argNo = -1;
                             break;
@@ -220,16 +219,8 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, 
                         } else {
                             //    <~NUMBER~value~>
                             n = newContext->getNode(argNo);
-                            if (!n->value) {
-                                n = newContext->getNode(1);
-                                this->eval(n->text);
-                                n->value = theOutput->removeFromString(newContext->position);
-                            }
-                            o = this->getNode(argNo);
-                            delete o->text;
-                            o->text = NULL;
-                            delete o->value;
-                            o->value[argNo] = new Text(n->value);
+                            if (!n->hasValue()) Context::evalTextForArg(1, newContext, theOutput);
+                            Context::setMacroVariable(argNo, n->value);
                         }
                         delete newContext;
                         return;
@@ -242,6 +233,27 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, 
             (new Context(this, in))->error("Extra ~>");
         }
     }    
+}
+
+void Context::evalTextForArg(int argNo, Context* &newContext, Text* &theOutput)
+{
+  Node* n;
+
+  n = newContext->getNode(argNo);
+  this->eval(n->text);
+  n->value = theOutput->removeFromString(newContext->position);
+}
+
+void Context::setMacroVariable(int varNo, Text* t)
+{
+  Node* o;
+
+  o = this->getNode(varNo);
+  delete o->text;
+  o->text = NULL;
+  delete o->value;
+  // o->value[varNo] = new Text(t);
+  o->value = new Text(t);
 }
 
 void Context::evalMacro(Context* &newContext)

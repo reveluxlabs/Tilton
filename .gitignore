@@ -2,3 +2,5 @@
 tilton
 Derived*/
 test/*.cpp
+tilton.xcodeproj/
+src/*.o

@@ -46,7 +46,7 @@ describe "A command line macro processor (in general)" do
     result.should.include "Charlie"
   end
 
-  it "should set the one digit macro" do
+  it "should set the one digit macro with no prior arg" do
     # setup fixture
     # execute SUT
     result = %x[ echo "<~1~3~><~1~>" | ./tilton ]
@@ -54,8 +54,12 @@ describe "A command line macro processor (in general)" do
     result.should.include "3"
   end
 
+  it "should set the one digit macro with an arg" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~1~3~><~1~>" | ./tilton charlie ]
+    # verify results
+    result.should.include "3"
+  end
 
-# TC's needed
-# extra args in input
-# report correctly a missing definition
 end

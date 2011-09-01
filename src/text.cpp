@@ -22,9 +22,9 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "tilton.h"
 #include "text.h"
-
 
 // null constructor
 
@@ -182,7 +182,7 @@ void Text::dump() {
 
 // get character
 
-int Text::get(int index) {
+int Text::getChar(int index) {
     if (index >= 0 && index < length) {
         return string[index];
     } else {
@@ -199,6 +199,11 @@ number Text::getNumber() {
     bool sign = false;
     bool ok = false;
     number value = 0;
+    
+    if (length == 0) {
+        return NAN;  // joh 31Aug11
+    }
+    
     for(;;) {
         c = string[i];
         i += 1;
@@ -276,7 +281,8 @@ int Text::indexOf(Text *t) {
             if (b) {
                 return r;
             }
-        }
+        };
+
     }
     return -1;
 }
@@ -389,10 +395,29 @@ int Text::lastIndexOf(Text *t) {
 
 // less than text
 
-bool Text::lt(Text* t) {
+bool Text::lt(Text* t)
+{
+    // refactored to seperate all digits from text -- jr 28Aug11
+    if (this->allDigits() && t->allDigits()) {
+      return this->ltNum(t);
+    } else {
+      return this->ltStr(t);
+    }
+}
+
+bool Text::ltNum(Text* t)
+{
+    int first, second;
+
+    first = atoi(this->string);
+    second = atoi(t->string);
+    return first < second;
+}
+
+bool Text::ltStr(Text* t) {
+    // original lt
     int len = t->length;
     if (len > length) {
-        // return true;   // joh 28Aug11
         len = length;
     }
     for (int i = 0; i < len; i += 1) {

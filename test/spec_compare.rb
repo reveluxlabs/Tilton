@@ -157,7 +157,7 @@ describe "The compare method" do
     # execute SUT
     result = %x[ echo "#{input}" | ./tilton ]
     # verify results
-    result.should.include "no"
+    result.should.include "yes"
   end
 
   it "should process ge? with different size numbers and letters" do
@@ -255,7 +255,7 @@ describe "The compare method" do
     # execute SUT
     result = %x[ echo "#{input}" | ./tilton ]
     # verify results
-    result.should.include "yes"
+    result.should.include "no"
   end
 
   it "should process gt? high to low with different size numbers" do
@@ -264,7 +264,7 @@ describe "The compare method" do
     # execute SUT
     result = %x[ echo "#{input}" | ./tilton ]
     # verify results
-    result.should.include "no"
+    result.should.include "yes"
   end
 
   it "should process gt? with different size numbers and letters" do

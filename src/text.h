@@ -12,6 +12,7 @@
 #define __TEXT_H_
 
 #include "tilton.h"
+#include "string.h"
 
 class Context;
 
@@ -33,7 +34,7 @@ public:
     void    append(Text* t);
     void    appendNumber(number);
     void    dump();
-    int     get(int index);
+    int     getChar(int index);
     number  getNumber();
     uint32  hash();
     int     indexOf(Text* t);
@@ -75,7 +76,15 @@ public:
     {
         return this->tail(i);
     }
+    bool    allDigits()
+    {
+      const char*   cset = "1234567890";
+      return this->length == strspn(this->string, cset);
+    }
     
+    bool ltNum(Text* t);
+    bool ltStr(Text* t);
+
     Op      function;
     int     length;
     Text*   link;       // hash collisions
