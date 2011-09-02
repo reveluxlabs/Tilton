@@ -1,12 +1,20 @@
-//  node.h: interface for the node class.
-//  2006-10-05
+// node.h: interface for the node class.
 
-//  The Tilton Macro Processor
+//
+//  Tilton Macro Processor
+//
+//  Tilton is a simple macro processor. It is small, 
+//  portable, and Unicode compatible.
+//  Written by Douglas Crockford [ www.crockford.com/tilton ]
+//  2006-10-06
+//
 
-//  Douglas Crockford
-//  http://www.crockford.com/tilton
-
-//  This program is Open Source and Public Domain.
+// Updated for OS X and Debian by JR at Revelux Labs
+//
+// Version 0.7
+// 1Sep11
+//
+// This version of Tilton is licensed under the MIT license.
 
 #ifndef __NODE_H_
 #define __NODE_H_

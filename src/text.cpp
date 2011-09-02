@@ -1,12 +1,21 @@
-//  text.cpp: implementation of the Text class.
+// text.cpp: implementation of the Text class.
+// For interface definitions, see text.h
+
+//
+//  Tilton Macro Processor
+//
+//  Tilton is a simple macro processor. It is small, 
+//  portable, and Unicode compatible.
+//  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
+//
 
-//  The Tilton Macro Processor
-
-//  Douglas Crockford
-//  http://www.crockford.com/tilton
-
-//  This program is Open Source and Public Domain.
+// Updated for OS X and Debian by JR at Revelux Labs
+//
+// Version 0.7
+// 1Sep11
+//
+// This version of Tilton is licensed under the MIT license.
 
 //  Text wraps a string, and provides methods for setting and modifying the
 //  string and for doing I/O with it. A Text can also have a name, which 
@@ -469,21 +478,9 @@ bool Text::read(Text* filename) {
 }
 
 
-// set character
-
-void Text::set(int index, int c) {
-    myHash = 0;
-    if (index >= length) {
-        append(c);
-    } else if (index >= 0) {
-        string[index] = (char)c;
-    }
-}
-
-
 // set text
 
-void Text::set(Text* t) {
+void Text::setString(Text* t) {
     myHash = 0;
     if (t && t->length) {
         length = t->length;

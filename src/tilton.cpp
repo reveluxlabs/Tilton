@@ -1,15 +1,21 @@
-//  tilton.cpp
+// tilton.cpp
+// For interface definition, see tilton.h
+
+//
+//  Tilton Macro Processor
+//
+//  Tilton is a simple macro processor. It is small, 
+//  portable, and Unicode compatible.
+//  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
+//
 
-//  The Tilton Macro Processor
-
-//  Douglas Crockford
-//  http://www.crockford.com/tilton
-
-//  This program is Open Source and Public Domain.
-
-//  This file contains the built-in functions and command line options.
-//  This file contains main.
+// Updated for OS X and Debian by JR at Revelux Labs
+//
+// Version 0.7
+// 1Sep11
+//
+// This version of Tilton is licensed under the MIT license.
 
 #include <stdio.h>
 #include <string.h>
@@ -18,89 +24,24 @@
 #include "iter.h"
 #include "context.h"
 #include "node.h"
-
-#include <iostream>
-using namespace std ;
-
-static void addFunction(const char*, void (* function)(Context *));
-static void addMacro(const char* , const char* );
-Text* lookup( Text* );
+#include "search.h"
 
 // MAXHASH is the largest index in the hash table. It must be (2**n)-1.
-
 #define MAXHASH 1023
 
-static Text* theMacroList[MAXHASH + 1];
+SearchList* macroTable = new SearchList();
 
 Text* theOutput = NULL;
 
 static number theSequenceNumber = 1000;
 
 
-static void link(Text* name, Text* t) {
-    uint32 h = name->hash() & MAXHASH;
-    t->setName(name);
-    t->link = theMacroList[h];
-    theMacroList[h] = t;
-}
-
-
-//  addFunction is used by main to add primitive functions to tilton.
-//  A function operates on a context which supplies the parameters. 
-
-static void addFunction(const char* namestring, void (*function)(Context * )) {
-    Text* t = new Text();
-    Text* name = new Text(namestring);
-    link(name, t);
-    t->function = function;
-    delete name;
-}
-
-
-//  addMacro -- This is a little faster than install() because it assumes that
-//  the name is not already in the macro list.
-
-static void addMacro(const char* namestring, const char* string) {
-    Text* name = new Text(namestring);
-    link(name, new Text(string));
-    delete name;
-}
-
-
-//  lookup - search through the macro list for a text with a specific name.
-//  The list is a hash table with links for collisions.
-
-Text* lookup(Text* name) {
-    Text* t = theMacroList[name->hash() & MAXHASH];
-    while (t) {
-        if (t->isName(name)) {
-            break;
-        }
-        t = t->link;
-    }
-    return t;
-}
-
-
-//  install - if there is a text in the macro list with this name, set its
-//  value. Otherwise, make a new text with this name and value and put
-//  it in the list.
-
-static void install(Text* name, Text* value) {
-    Text* t = lookup(name);
-    if (t) {
-        t->set(value);
-    } else {
-        link(name, new Text(value));
-    }
-}
-
 // reduce - reduce a list of parameters to a single value. This is used
 // to implement the tilton arithmetic functions.
 
 static void reduce(Context* context, number num, number (*f)(number, number))
 {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     if (n) {
         if (num == NAN) {
             num = context->evalNumber(n);
@@ -155,7 +96,7 @@ static void test(Context* context, int (*f)(Text*, Text*))
 {
     Node* c;
     Node* t;
-    Node* s = context->node->next;
+    Node* s = context->first->next;
     if (!s) {
         context->error("No parameters");
         return;
@@ -230,7 +171,7 @@ static void tilton_add(Context* context) {
 //  tilton and
 
 static void tilton_and(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     Text* t = NULL;
     while (n) {
         t = context->evalArg(n);
@@ -246,7 +187,7 @@ static void tilton_and(Context* context) {
 //  tilton append
 
 static void tilton_append(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     if (n == NULL) {
         context->error("Missing name");
     }
@@ -254,14 +195,9 @@ static void tilton_append(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    Text* t = lookup(name);
-    if (!t) {
-        t = new Text(0);
-        uint32 h = name->hash() & MAXHASH;
-        t->setName(name);
-        t->link = theMacroList[h];
-        theMacroList[h] = t;
-    }
+    
+    Text* t = macroTable->getDef(name);
+    
     for (;;) {
         n = n->next;
         if (!n) {
@@ -281,31 +217,33 @@ static void tilton_define(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    install(name, theOutput->tail(position));
+    macroTable->install(name, theOutput->tail(position));
 }
 
 
 //  tilton defined?
 
 static void tilton_defined_(Context* context) {
-    theOutput->append(context->evalArg(lookup(context->evalArg(1)) ? 2 : 3));
+    theOutput->append(context->evalArg(macroTable->lookup(context->evalArg(1)) ? 2 : 3));
 }
 
 
 //  tilton delete
 
 static void tilton_delete(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     while (n) {
         Text* name = context->evalArg(n);
-        Text* t = theMacroList[name->hash() & MAXHASH];
+        // Text* t = macroTable->getList(name->hash() & MAXHASH);
+        Text* t = macroTable->lookup(name);
         Text* u = NULL;
         while (t) {
             if (t->isName(name)) {
                 if (u) {
                     u->link = t->link;
                 } else {
-                    theMacroList[name->hash() & MAXHASH] = t->link;
+                    macroTable->install(name, t->link);
+                    // macroTable->setList(name->hash() & MAXHASH, t->link);
                 }
                 delete t;
                 break;
@@ -328,13 +266,7 @@ static void tilton_div(Context* context) {
 //  tilton dump
 
 static void tilton_dump(Context* context) {
-    int i;
-    for (i = 0; i < (MAXHASH + 1); i += 1) {
-        Text* macro = theMacroList[i];
-        if (macro) {
-            macro->dump();
-        }
-    }
+    macroTable->dump();
     context->nop();
 }
 
@@ -409,12 +341,12 @@ static void tilton_eval(Context* context) {
 //  tilton first
 
 static void tilton_first(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     Text* name = context->evalArg(n);
     if (name->length < 1) {
         context->error("Missing name: first");
     }
-    Text* string = lookup(name);
+    Text* string = macroTable->lookup(name);
     if (!string) {
         context->error("Undefined variable", name);
         return;
@@ -463,10 +395,10 @@ static void tilton_gensym(Context* context) {
 //  tilton get
 
 static void tilton_get(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     while (n) {
         Text* name = context->evalArg(n);
-        Text* macro = lookup(name);
+        Text* macro = macroTable->lookup(name);
         if (macro) {
             theOutput->append(macro);
         } else {
@@ -487,7 +419,7 @@ static void tilton_gt_(Context* context) {
 //  tilton include
 
 static void tilton_include(Context* context) {
-    // Node* n = context->node->next;
+    // Node* n = context->first->next;
     Text* string = new Text();
     Text* name = context->evalArg(1);
     if (!string->read(name)) {
@@ -511,12 +443,12 @@ static void tilton_include(Context* context) {
 //  tilton last
 
 static void tilton_last(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     Text* name = context->evalArg(1);
     if (name->length < 1) {
         context->error("Missing name");
     }
-    Text* string = lookup(name);
+    Text* string = macroTable->lookup(name);
     if (!string) {
         context->error("Undefined variable", name);
         return;
@@ -572,7 +504,7 @@ static void tilton_literal(Context* context) {
 //  is not null.
 
 static void tilton_loop(Context* context) {
-    // Node* n = context->node->next;
+    // Node* n = context->first->next;
     while (context->evalArg(1)->length > 0) {
         context->resetArg(1); 
         context->resetArg(2);
@@ -605,7 +537,7 @@ static void tilton_mult(Context* context) {
 //  tilton mute
 
 static void tilton_mute(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     while (n) {
         context->evalArg(n);
         n = n->next;
@@ -638,7 +570,7 @@ static void tilton_number_(Context* context) {
 //  tilton or
 
 static void tilton_or(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     Text* t = NULL;
     while (n) {
         t = context->evalArg(n);
@@ -674,7 +606,7 @@ static void tilton_read(Context* context) {
 // tilton rep
 
 static void tilton_rep(Context* context) {
-    // Node* n = context->node->next;
+    // Node* n = context->first->next;
     Text* value = context->evalArg(1);
     for (number num = context->evalNumber(2); num > 0; num -= 1) {
         theOutput->append(value);
@@ -688,7 +620,7 @@ static void tilton_set(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    install(name, context->evalArg(2));
+    macroTable->install(name, context->evalArg(2));
 }
 
 
@@ -732,7 +664,7 @@ static void tilton_sub(Context* context) {
 //  tilton substr
 
 static void tilton_substr(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     Text* string = context->evalArg(n);
     n = n->next;
     if (n) {
@@ -756,7 +688,7 @@ static void tilton_substr(Context* context) {
 //  tilton trim
 
 static void tilton_trim(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     while (n) {
         theOutput->trim(context->evalArg(n));
         n = n->next;
@@ -767,7 +699,7 @@ static void tilton_trim(Context* context) {
 //  tilton unicode
 
 static void tilton_unicode(Context* context) {
-    Node* n = context->node->next;
+    Node* n = context->first->next;
     while (n) {
         number num = context->evalNumber(n);
         if (num >= 0) {
@@ -820,59 +752,55 @@ int main(int argc, const char * argv[])
     Context* context = new Context(NULL, NULL);
     Text* in = new Text();
     theOutput = new Text(1024);
-    for (i = MAXHASH; i >= 0; i -= 1) {
-        theMacroList[i] = NULL;
-    }
-    addFunction("add",       tilton_add);
-    addFunction("and",       tilton_and);
-    addFunction("append",    tilton_append);
-    addFunction("define",    tilton_define);
-    addFunction("defined?",  tilton_defined_);
-    addFunction("delete",    tilton_delete);
-    addFunction("div",       tilton_div);
-    addFunction("dump",      tilton_dump);
-    addFunction("entityify", tilton_entityify);
-    addFunction("eq?",       tilton_eq_);
-    addFunction("eval",      tilton_eval);
-    addFunction("first",     tilton_first);
-    addFunction("ge?",       tilton_ge_);
-    addFunction("gensym",    tilton_gensym);
-    addFunction("get",       tilton_get);
-    addFunction("gt?",       tilton_gt_);
-    addFunction("include",   tilton_include);
-    addFunction("last",      tilton_last);
-    addFunction("le?",       tilton_le_);
-    addFunction("length",    tilton_length);
-    addFunction("literal",   tilton_literal);
-    addFunction("loop",      tilton_loop);
-    addFunction("lt?",       tilton_lt_);
-    addFunction("mod",       tilton_mod);
-    addFunction("mult",      tilton_mult);
-    addFunction("mute",      tilton_mute);
-    addFunction("ne?",       tilton_ne_);
-    addFunction("null",      tilton_null);
-    addFunction("number?",   tilton_number_);
-    addFunction("or",        tilton_or);
-    addFunction("print",     tilton_print);
-    addFunction("read",      tilton_read);
-    addFunction("rep",       tilton_rep);
-    addFunction("set",       tilton_set);
-    addFunction("slashify",  tilton_slashify);
-    addFunction("stop",      tilton_stop);
-    addFunction("sub",       tilton_sub);
-    addFunction("substr",    tilton_substr);
-    addFunction("trim",      tilton_trim);
-    addFunction("unicode",   tilton_unicode);
-    addFunction("write",     tilton_write);
-    addMacro("gt", ">");
-    addMacro("lt", "<");
-    addMacro("tilde", "~");
-    addMacro("tilton", "0");
+
+    macroTable->install("add",       tilton_add);
+    macroTable->install("and",       tilton_and);
+    macroTable->install("append",    tilton_append);
+    macroTable->install("define",    tilton_define);
+    macroTable->install("defined?",  tilton_defined_);
+    macroTable->install("delete",    tilton_delete);
+    macroTable->install("div",       tilton_div);
+    macroTable->install("dump",      tilton_dump);
+    macroTable->install("entityify", tilton_entityify);
+    macroTable->install("eq?",       tilton_eq_);
+    macroTable->install("eval",      tilton_eval);
+    macroTable->install("first",     tilton_first);
+    macroTable->install("ge?",       tilton_ge_);
+    macroTable->install("gensym",    tilton_gensym);
+    macroTable->install("get",       tilton_get);
+    macroTable->install("gt?",       tilton_gt_);;
+    macroTable->install("include",   tilton_include);
+    macroTable->install("last",      tilton_last);
+    macroTable->install("le?",       tilton_le_);
+    macroTable->install("length",    tilton_length);
+    macroTable->install("literal",   tilton_literal);
+    macroTable->install("loop",      tilton_loop);
+    macroTable->install("lt?",       tilton_lt_);
+    macroTable->install("mod",       tilton_mod);
+    macroTable->install("mult",      tilton_mult);
+    macroTable->install("mute",      tilton_mute);
+    macroTable->install("ne?",       tilton_ne_);
+    macroTable->install("null",      tilton_null);
+    macroTable->install("number?",   tilton_number_);
+    macroTable->install("or",        tilton_or);
+    macroTable->install("print",     tilton_print);
+    macroTable->install("read",      tilton_read);
+    macroTable->install("rep",       tilton_rep);
+    macroTable->install("set",       tilton_set);
+    macroTable->install("slashify",  tilton_slashify);
+    macroTable->install("stop",      tilton_stop);
+    macroTable->install("sub",       tilton_sub);
+    macroTable->install("substr",    tilton_substr);
+    macroTable->install("trim",      tilton_trim);
+    macroTable->install("unicode",   tilton_unicode);
+    macroTable->install("write",     tilton_write);
+    macroTable->install("gt", ">");
+    macroTable->install("lt", "<");
+    macroTable->install("tilde", "~");
+    macroTable->install("tilton", "0");
 
 // process the command line arguments
 
-//    cout << "MAIN: Processing args" << endl ;
-    
     i = 0;
     while (i < argc) {
         arg = argv[i];
@@ -972,7 +900,7 @@ int main(int argc, const char * argv[])
                     i += 1;
                     string = new Text(argv[i]);
                     i += 1;
-                    install(name, string);
+                    macroTable->install(name, string);
                     delete name;
                     delete string;
                 } else {
@@ -1019,16 +947,14 @@ int main(int argc, const char * argv[])
 // Process the input
 
     if (go) {
-//        cout << "MAIN: reading stdin" << endl ;
         in->input();
         in->setName("[standard input]");
-//        cout << "MAIN: Starting eval" << endl ;
         context->eval(in);
     }
 
 // and finally
 
-//    cout << "MAIN: Writing output" << endl ;
+
     theOutput->output();
     return 0;
 }

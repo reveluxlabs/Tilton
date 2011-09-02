@@ -1,12 +1,21 @@
-//  context.cpp
+// context.cpp
+// For interface defintions, see context.h
+
+//
+//  Tilton Macro Processor
+//
+//  Tilton is a simple macro processor. It is small, 
+//  portable, and Unicode compatible.
+//  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
+//
 
-//  The Tilton Macro Processor
-
-//  Douglas Crockford
-//  http://www.crockford.com/tilton
-
-//  This program is Open Source and Public Domain.
+// Updated for OS X and Debian by JR at Revelux Labs
+//
+// Version 0.7
+// 1Sep11
+//
+// This version of Tilton is licensed under the MIT license.
 
 //  Context is the key datastructure in Tilton. It keeps a collection of 
 //  parameters in numbered slots. We keep in each slot a raw string
@@ -23,14 +32,15 @@
 #include "iter.h"
 #include "context.h"
 #include "node.h"
+#include "search.h"
 
 extern Text* theOutput;
-extern Text* lookup(Text* name);
+extern SearchList* macroTable;
 
 
 Context::Context(Context* prev, Iter* s) {
     position = 0;
-    node = NULL;
+    first = NULL;
     last = NULL;
     previous = prev;
     source = s;
@@ -47,7 +57,7 @@ Context::Context(Context* prev, Iter* s) {
 
 
 Context::~Context() {
-    delete this->node;
+    delete this->first;
 }
 
 
@@ -64,15 +74,15 @@ void Context::add(Text* t) {
     if (last) {
         last->next = p;
     } else {
-        node = p;
+        first = p;
     }
     last = p;
 }
 
 
 void Context::dump() {
-    if (node) {
-        node->dump();
+    if (first) {
+        first->dump();
     }
     fputc('\n', stderr);
 }
@@ -200,7 +210,7 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, 
                     newContext->error("Short ~>");
                 }
                 //    apply:           
-                n = newContext->node;
+                n = newContext->first;
                 //    <~NUMBER~>
                 s = n->text;
                 argNo = s->getChar(0) - '0';
@@ -262,7 +272,7 @@ void Context::evalMacro(Context* &newContext)
     Text* name;
     
     name = newContext->evalArg(0);
-    macro = lookup(name);
+    macro = macroTable->lookup(name);
     if (macro) {
         if (macro->function) {
             macro->function(newContext);
@@ -335,10 +345,10 @@ number Context::evalNumber(Node* n)
 Node* Context::getNode(int argNr)
 {
     Node* p;
-    if (!node) {
-        node = last = new Node(NULL);
+    if (!first) {
+        first = last = new Node(NULL);
     }
-    p = node;
+    p = first;
     for (;;) {
         if (!argNr) {
             return p;
@@ -385,9 +395,9 @@ void Context::whereError(Text* report) {
         report->appendNumber(index + 1);
         report->append(") ");
     }
-    if (node->text && node->text->length) {
+    if (first->text && first->text->length) {
         report->append("<~");
-        report->append(node->text);
+        report->append(first->text);
         report->append("~> ");
     }
 }

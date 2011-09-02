@@ -1,12 +1,20 @@
-//  text.h: interface for the Text class.
-//  2006-10-05
+// text.h: interface for the Text class.
 
-//  The Tilton Macro Processor
+//
+//  Tilton Macro Processor
+//
+//  Tilton is a simple macro processor. It is small, 
+//  portable, and Unicode compatible.
+//  Written by Douglas Crockford [ www.crockford.com/tilton ]
+//  2006-10-06
+//
 
-//  Douglas Crockford
-//  http://www.crockford.com/tilton
-
-//  This program is Open Source and Public Domain.
+// Updated for OS X and Debian by JR at Revelux Labs
+//
+// Version 0.7
+// 1Sep11
+//
+// This version of Tilton is licensed under the MIT license.
 
 #ifndef __TEXT_H_
 #define __TEXT_H_
@@ -46,8 +54,7 @@ public:
     bool    lt(Text* t);
     void    output();
     bool    read(Text* t);
-    void    set(int index, int c);
-    void    set(Text* t);
+    void    setString(Text* t);
     void    setName(const char* s);
     void    setName(const char* s, int len);
     void    setName(Text* t);

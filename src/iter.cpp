@@ -1,12 +1,21 @@
-//  iter.cpp: implementation of the Iter class.
-//  2006-10-05
+// iter.cpp: implementation of the Iter class.
+// For interface definitions, see iter.h
 
-//  The Tilton Macro Processor
+//
+//  Tilton Macro Processor
+//
+//  Tilton is a simple macro processor. It is small, 
+//  portable, and Unicode compatible.
+//  Written by Douglas Crockford [ www.crockford.com/tilton ]
+//  2006-10-06
+//
 
-//  Douglas Crockford
-//  http://www.crockford.com/tilton
-
-//  This program is Open Source and Public Domain.
+// Updated for OS X and Debian by JR at Revelux Labs
+//
+// Version 0.7
+// 1Sep11
+//
+// This version of Tilton is licensed under the MIT license.
 
 // Iter is just a convenient way of processing a text. 
 // It keeps track of lines for error messages.
