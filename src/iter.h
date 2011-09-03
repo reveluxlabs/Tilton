@@ -3,7 +3,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -14,17 +14,18 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-#ifndef __ITER_H_
-#define __ITER_H_
+#ifndef SRC_ITER_H_
+#define SRC_ITER_H_
 
 class Text;
 
-class Iter 
-{
-public:
-    Iter(Text*);
+class Iter {
+ public:
+    explicit Iter(Text* t);
     virtual ~Iter();
 
     int     back();
@@ -38,4 +39,4 @@ public:
 };
 
 
-#endif //__ITER_H_
+#endif  // SRC_ITER_H_

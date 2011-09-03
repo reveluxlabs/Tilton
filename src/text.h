@@ -3,7 +3,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -14,10 +14,12 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-#ifndef __TEXT_H_
-#define __TEXT_H_
+#ifndef SRC_TEXT_H_
+#define SRC_TEXT_H_
 
 #include "tilton.h"
 #include "string.h"
@@ -27,12 +29,12 @@ class Context;
 typedef void (*Op)(Context* context);
 
 class Text {
-public:
+ public:
     Text();
-    Text(int len);
-    Text(const char* s);
+    explicit Text(int len);
+    explicit Text(const char* s);
     Text(const char* s, int len);
-    Text(Text* t);
+    explicit Text(Text* t);
     virtual ~Text();
 
     void    append(int c);
@@ -65,30 +67,25 @@ public:
     Text*   utfSubstr(int start, int len);
     bool    write(Text* t);
 
-    void    addToString(char c)
-    {
+    void    addToString(char c) {
         this->append(c);
     }
-    void    addToString(char c, int i)
-    {
+    void    addToString(char c, int i) {
         this->append(c, i);
     }
-    void    addToString(Text* s)
-    {
+    void    addToString(Text* s) {
         if (s) {
             this->append(s->string, s->length);
         }
     }
-    Text*    removeFromString(int i)
-    {
+    Text*    removeFromString(int i) {
         return this->tail(i);
     }
-    bool    allDigits()
-    {
+    bool    allDigits() {
       const char*   cset = "1234567890";
       return this->length == strspn(this->string, cset);
     }
-    
+
     bool ltNum(Text* t);
     bool ltStr(Text* t);
 
@@ -100,11 +97,11 @@ public:
     int     nameLength;
     char*   string;
 
-private:
+ private:
     void    checkMaxLength(int len);
     void    init(const char* s, int len);
 
     uint32     myHash;
 };
 
-#endif //__TEXT_H_
+#endif  // SRC_TEXT_H_

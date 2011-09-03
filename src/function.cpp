@@ -4,7 +4,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -14,6 +14,8 @@
 //
 // Version 0.7
 // 1Sep11
+//
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
 //
 // This version of Tilton is licensed under the MIT license.
 
@@ -30,8 +32,7 @@ static number theSequenceNumber = 1000;
 // reduce - reduce a list of parameters to a single value. This is used
 // to implement the tilton arithmetic functions.
 
-static void reduce(Context* context, number num, number (*f)(number, number))
-{
+static void reduce(Context* context, number num, number (*f)(number, number)) {
     Node* n = context->first->next;
     if (n) {
         if (num == NAN) {
@@ -56,35 +57,29 @@ static void reduce(Context* context, number num, number (*f)(number, number))
     theOutput->appendNumber(num);
 }
 
-static number add(number first, number second)
-{
+static number add(number first, number second) {
     return first + second;
 }
 
-static number sub(number first, number second)
-{
+static number sub(number first, number second) {
     return first - second;
 }
 
-static number mult(number first, number second)
-{
+static number mult(number first, number second) {
     return first * second;
 }
 
-static number div(number first, number second)
-{
+static number div(number first, number second) {
     return second ? first / second : NAN;
 }
 
-static number mod(number first, number second)
-{
+static number mod(number first, number second) {
     return second ? first % second : NAN;
 }
 
 //  test - This is used to implement the tilton binary conditional functions.
 
-static void test(Context* context, int (*f)(Text*, Text*)) 
-{
+static void test(Context* context, int (*f)(Text*, Text*)) {
     Node* c;
     Node* t;
     Node* s = context->first->next;
@@ -102,7 +97,7 @@ static void test(Context* context, int (*f)(Text*, Text*))
         context->error("Too few parameters");
     }
     for (;;) {
-        if (f(swich, context->evalArg(c))) { // then
+        if (f(swich, context->evalArg(c))) {  // then
             theOutput->append(context->evalArg(t));
             return;
         }
@@ -115,37 +110,31 @@ static void test(Context* context, int (*f)(Text*, Text*))
             theOutput->append(context->evalArg(c));
             return;
         }
-    } 
-}    
+    }
+}
 
-static int eq(Text* first, Text* second)
-{
+static int eq(Text* first, Text* second) {
     return first->is(second);
 }
 
 
-static int ge(Text* first, Text* second)
-{
+static int ge(Text* first, Text* second) {
     return !(first->lt(second));
 }
 
-static int gt(Text* first, Text* second)
-{
+static int gt(Text* first, Text* second) {
     return second->lt(first);
 }
 
-static int le(Text* first, Text* second)
-{
+static int le(Text* first, Text* second) {
     return !(second->lt(first));
 }
 
-static int lt(Text* first, Text* second)
-{
+static int lt(Text* first, Text* second) {
     return first->lt(second);
 }
 
-static int ne(Text* first, Text* second)
-{
+static int ne(Text* first, Text* second) {
     return !(first->is(second));
 }
 
@@ -168,7 +157,7 @@ static void tilton_and(Context* context) {
         t = context->evalArg(n);
         if (t->length == 0) {
             return;
-        } 
+        }
         n = n->next;
     }
     theOutput->append(t);
@@ -186,9 +175,9 @@ static void tilton_append(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    
+
     Text* t = macroTable->getDef(name);
-    
+
     for (;;) {
         n = n->next;
         if (!n) {
@@ -215,7 +204,8 @@ static void tilton_define(Context* context) {
 //  tilton defined?
 
 static void tilton_defined_(Context* context) {
-    theOutput->append(context->evalArg(macroTable->lookup(context->evalArg(1)) ? 2 : 3));
+  theOutput->append(
+      context->evalArg(macroTable->lookup(context->evalArg(1)) ? 2 : 3));
 }
 
 
@@ -303,7 +293,7 @@ static void tilton_entityify(Context* context) {
 
 
 
-//  tilton eq?  
+//  tilton eq?
 
 // eq? switch-value case1 then1 (casei theni) else
 
@@ -459,7 +449,7 @@ static void tilton_last(Context* context) {
             len = d->length;
         }
     }
-    theOutput->append(string->string + r + len, 
+    theOutput->append(string->string + r + len,
                       string->length - (r + len));
     string->length = r;
     n = context->previous->getNode(0);
@@ -491,13 +481,13 @@ static void tilton_literal(Context* context) {
 }
 
 
-//  tilton loop - eval the second parameter as long as the first parameter 
+//  tilton loop - eval the second parameter as long as the first parameter
 //  is not null.
 
 static void tilton_loop(Context* context) {
     // Node* n = context->first->next;
     while (context->evalArg(1)->length > 0) {
-        context->resetArg(1); 
+        context->resetArg(1);
         context->resetArg(2);
         theOutput->append(context->evalArg(2));
     }
@@ -567,7 +557,7 @@ static void tilton_or(Context* context) {
         t = context->evalArg(n);
         if (t->length) {
             break;
-        } 
+        }
         n = n->next;
     }
     theOutput->append(t);
@@ -615,7 +605,7 @@ static void tilton_set(Context* context) {
 }
 
 
-//  tilton slashify outputs a string in which selected 
+//  tilton slashify outputs a string in which selected
 //  characters get a \ prefix.
 
 static void tilton_slashify(Context* context) {
@@ -626,9 +616,9 @@ static void tilton_slashify(Context* context) {
         for (i = 0; i < t->length; i += 1) {
             c = t->getChar(i);
             switch (c) {
-                case '\\': // backslash
-                case '\'': // single quote
-                case '"':  // double quote
+                case '\\':  // backslash
+                case '\'':  // single quote
+                case  '"':  // double quote
                     theOutput->append('\\');
                     break;
             }
@@ -669,7 +659,7 @@ static void tilton_substr(Context* context) {
             ber = context->evalNumber(n);
         }
         if (num >= 0 && ber > 0) {
-            theOutput->append(context->evalArg(1)->utfSubstr((int)num, 
+            theOutput->append(context->evalArg(1)->utfSubstr((int)num,
                                                              (int)ber));
         }
     }
@@ -740,9 +730,7 @@ FunctionContext::~FunctionContext() {
 }
 
 // jr 1Sep11 (based on code by Douglas Crockford)
-void FunctionContext::registerTiltonFunctions(SearchList* macroTable)
-{
-
+void FunctionContext::registerTiltonFunctions(SearchList* macroTable) {
     macroTable->install("add",       tilton_add);
     macroTable->install("and",       tilton_and);
     macroTable->install("append",    tilton_append);
@@ -758,7 +746,7 @@ void FunctionContext::registerTiltonFunctions(SearchList* macroTable)
     macroTable->install("ge?",       tilton_ge_);
     macroTable->install("gensym",    tilton_gensym);
     macroTable->install("get",       tilton_get);
-    macroTable->install("gt?",       tilton_gt_);;
+    macroTable->install("gt?",       tilton_gt_);
     macroTable->install("include",   tilton_include);
     macroTable->install("last",      tilton_last);
     macroTable->install("le?",       tilton_le_);
@@ -788,7 +776,6 @@ void FunctionContext::registerTiltonFunctions(SearchList* macroTable)
     macroTable->install("lt", "<");
     macroTable->install("tilde", "~");
     macroTable->install("tilton", "0");
-    
 }
 
 

@@ -3,7 +3,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-05
@@ -14,14 +14,16 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-#ifndef __TILTON_H_
-#define __TILTON_H_
+#ifndef SRC_TILTON_H_
+#define SRC_TILTON_H_
 
 #define EOT (-1)
 
-// Tilton numbers are integers. 
+// Tilton numbers are integers.
 
 typedef long number;
 
@@ -41,4 +43,4 @@ typedef long number;
 typedef unsigned long int  uint32;   /* unsigned 4-byte quantities */
 typedef unsigned      char uint8;    /* unsigned 1-byte quantities */
 
-#endif //__TILTON_H_
+#endif  // SRC_TILTON_H_

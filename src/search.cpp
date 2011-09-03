@@ -4,7 +4,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -15,12 +15,15 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
+#include "search.h"
 
 #include <stdlib.h>
+
 #include "tilton.h"
-#include "search.h"
 #include "text.h"
 
 
@@ -35,13 +38,11 @@ SearchList::SearchList() {
 SearchList::~SearchList() {
 }
 
-Text* SearchList::getList(uint32 h)
-{
+Text* SearchList::getList(uint32 h) {
     return theMacroList[h];
 }
 
-void SearchList::setList(uint32 h, Text* t)
-{
+void SearchList::setList(uint32 h, Text* t) {
     theMacroList[h] = t;
 }
 
@@ -49,11 +50,11 @@ void SearchList::link(Text* name, Text* t) {
     uint32 h = name->hash() & MAXHASH;
     t->setName(name);
     t->link = SearchList::getList(h);
-    SearchList::setList(h,t);
+    SearchList::setList(h, t);
 }
 
 //  addFunction is used by main to add primitive functions to tilton.
-//  A function operates on a context which supplies the parameters. 
+//  A function operates on a context which supplies the parameters.
 
 void SearchList::install(const char* namestring, void (*function)(Context * )) {
     Text* t = new Text();
@@ -110,8 +111,7 @@ void SearchList::dump() {
     }
 }
 
-Text* SearchList::getDef(Text* name)
-{
+Text* SearchList::getDef(Text* name) {
     Text* t = SearchList::lookup(name);
     if (!t) {
         t = new Text(0);

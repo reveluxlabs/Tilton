@@ -4,7 +4,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -15,16 +15,20 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-// Iter is just a convenient way of processing a text. 
+// Iter is just a convenient way of processing a text.
 // It keeps track of lines for error messages.
+
+#include "iter.h"
 
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "tilton.h"
 #include "text.h"
-#include "iter.h"
 
 Iter::Iter(Text* t) {
     text = t;
@@ -36,7 +40,7 @@ Iter::~Iter() {
 }
 
 
-// back up one character. 
+// back up one character.
 
 int Iter::back() {
     if (text) {
@@ -49,7 +53,7 @@ int Iter::back() {
 }
 
 
-// return the next character. 
+// return the next character.
 
 int Iter::next() {
     if (text) {

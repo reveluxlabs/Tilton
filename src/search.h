@@ -3,7 +3,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -14,22 +14,23 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-#ifndef __SEARCH_H_
-#define __SEARCH_H_
+#ifndef SRC_SEARCH_H_
+#define SRC_SEARCH_H_
 
 #include "tilton.h"
 #include "text.h"
 
 // MAXHASH is the largest index in the hash table. It must be (2**n)-1.
-#define MAXHASH 1023    
+#define MAXHASH 1023
 
 class SearchList {
-public:
+ public:
     SearchList();
     virtual ~SearchList();
-    
 
     Text* lookup(Text* name);
     void  install(const char* namestring, void (*function)(Context * ));
@@ -37,15 +38,14 @@ public:
     void  install(const char* namestring, const char* string);
     void  dump();
     Text* getDef(Text* name);
-    
 
-private:
+
+ private:
     Text* theMacroList[MAXHASH + 1];
 
-
-    Text* getList(uint32);
-    void  setList(uint32, Text*);
+    Text* getList(uint32 h);
+    void  setList(uint32 h, Text* t);
     void  link(Text* name, Text* t);
 };
 
-#endif  // __SEARCH_H_
+#endif  // SRC_SEARCH_H_

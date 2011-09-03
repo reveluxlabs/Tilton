@@ -4,7 +4,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -15,14 +15,16 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
 //  Text wraps a string, and provides methods for setting and modifying the
-//  string and for doing I/O with it. A Text can also have a name, which 
-//  is used as a macro name. A Text can have a link which can chain Texts 
+//  string and for doing I/O with it. A Text can also have a name, which
+//  is used as a macro name. A Text can have a link which can chain Texts
 //  together. This is used to manage hash collisions.
 
-//  The encoding of strings is UTF-8 (the 8-bit form of Unicode). A character 
+//  The encoding of strings is UTF-8 (the 8-bit form of Unicode). A character
 //  is between 1 and 4 bytes in length. The utfLength and utfSubstr methods
 //  count multibyte characters. However, if a multibyte character appears to
 //  be badly formed, it will interpret the first byte as a single byte
@@ -52,7 +54,7 @@ Text::Text(int len) {
 // c-string constructor
 
 Text::Text(const char* s) {
-    init(s, (int)strlen(s));
+    init(s, static_cast<int>(strlen(s)));
 }
 
 
@@ -86,7 +88,7 @@ Text::~Text() {
 
 void Text::append(int c) {
     checkMaxLength(1);
-    string[length] = (char)c;
+    string[length] = static_cast<char>(c);
     length += 1;
     myHash = 0;
 }
@@ -97,7 +99,7 @@ void Text::append(int c) {
 void Text::append(int c, int n) {
     checkMaxLength(n);
     while (n > 0) {
-        string[length] = (char)c;
+        string[length] = static_cast<char>(c);
         length += 1;
         n -= 1;
     }
@@ -109,7 +111,7 @@ void Text::append(int c, int n) {
 
 void Text::append(const char* s) {
     if (s) {
-        append(s, (int)strlen(s));
+        append(s, static_cast<int>(strlen(s)));
     }
 }
 
@@ -148,7 +150,7 @@ void Text::appendNumber(number n) {
         if (d > 0) {
             appendNumber(d);
         }
-        append((int)(n % 10) + '0');
+        append(static_cast<int>((n % 10) + '0'));
         myHash = 0;
     }
 }
@@ -208,12 +210,12 @@ number Text::getNumber() {
     bool sign = false;
     bool ok = false;
     number value = 0;
-    
+
     if (length == 0) {
         return NAN;  // joh 31Aug11
     }
-    
-    for(;;) {
+
+    for (;;) {
         c = string[i];
         i += 1;
         if (i > length) {
@@ -291,7 +293,6 @@ int Text::indexOf(Text *t) {
                 return r;
             }
         };
-
     }
     return -1;
 }
@@ -322,9 +323,10 @@ void Text::input() {
     char buffer[10240];
     int len;
     length = 0;
-    myHash = (int) 0;
+    myHash = static_cast<int>(0);
     for (;;) {
-        len = (int) fread(buffer, sizeof(char), sizeof(buffer), stdin);
+        len = static_cast<int>(fread(buffer, sizeof(char),
+                               sizeof(buffer), stdin));
         if (len <= 0) {
             break;
         }
@@ -404,8 +406,7 @@ int Text::lastIndexOf(Text *t) {
 
 // less than text
 
-bool Text::lt(Text* t)
-{
+bool Text::lt(Text* t) {
     // refactored to seperate all digits from text -- jr 28Aug11
     if (this->allDigits() && t->allDigits()) {
       return this->ltNum(t);
@@ -414,8 +415,7 @@ bool Text::lt(Text* t)
     }
 }
 
-bool Text::ltNum(Text* t)
-{
+bool Text::ltNum(Text* t) {
     int first, second;
 
     first = atoi(this->string);
@@ -464,7 +464,8 @@ bool Text::read(Text* filename) {
     fp = fopen(buffer, "rb");
     if (fp) {
         for (;;) {
-            len = (int) fread(buffer, sizeof(char), sizeof(buffer), fp);
+            len = static_cast<int>(fread(buffer, sizeof(char),
+                                   sizeof(buffer), fp));
             if (len <= 0) {
                 break;
             }
@@ -499,7 +500,7 @@ void Text::setString(Text* t) {
 // set name with c-string
 
 void Text::setName(const char* s) {
-    setName(s, (int) strlen(s));
+    setName(s, static_cast<int>(strlen(s)));
 }
 
 
@@ -514,12 +515,12 @@ void Text::setName(const char* s, int len) {
 
 
 // set name with text
-    
+
 void Text::setName(Text* t) {
     setName(t->string, t->length);
 }
 
-        
+
 //  substring
 
 void Text::substr(int start, int len) {
@@ -529,7 +530,7 @@ void Text::substr(int start, int len) {
 
 
 // remove tail and return it
-    
+
 Text* Text::tail(int index) {
     if (index >= 0 && index < length) {
         int len = length - index;
@@ -545,7 +546,7 @@ Text* Text::tail(int index) {
 // trim is like append, except that it trims leading, trailing spaces, and
 // reduces runs of whitespace to single space
 
-void Text::trim(Text* t) { 
+void Text::trim(Text* t) {
     char* s = t->string;
     int l = t->length;
     int i = 0;
@@ -581,21 +582,21 @@ int Text::utfLength() {
     while (i < length) {
         c = string[i] & 0xFF;
         i += 1;
-        if (c >= 0xC0) { 
-            if (c < 0xE0) { // 2-byte form
+        if (c >= 0xC0) {
+            if (c < 0xE0) {  // 2-byte form
                 if ((i + 1) < length && ((string[i] & 0xC0) == 0x80)) {
                     i += 1;
                 }
-            } else if (c < 0xF0) { // 3-byte form
-                if ((i + 2) < length && 
-                        ((string[i]     & 0xC0) == 0x80) && 
+            } else if (c < 0xF0) {  // 3-byte form
+                if ((i + 2) < length &&
+                        ((string[i]     & 0xC0) == 0x80) &&
                         ((string[i + 1] & 0xC0) == 0x80)) {
                     i += 2;
                 }
-            } else { // 4-byte form
-                if ((i + 3) < length && 
-                        ((string[i]     & 0xC0) == 0x80) && 
-                        ((string[i + 1] & 0xC0) == 0x80) && 
+            } else {  // 4-byte form
+                if ((i + 3) < length &&
+                        ((string[i]     & 0xC0) == 0x80) &&
+                        ((string[i + 1] & 0xC0) == 0x80) &&
                         ((string[i + 2] & 0xC0) == 0x80)) {
                     i += 3;
                 }
@@ -619,21 +620,21 @@ Text* Text::utfSubstr(int start, int len) {
         }
         c = string[i] & 0xFF;
         i += 1;
-        if (c >= 0xC0) { 
-            if (c < 0xE0) { // 2-byte form
+        if (c >= 0xC0) {
+            if (c < 0xE0) {  // 2-byte form
                 if ((i + 1) < length && ((string[i] & 0xC0) == 0x80)) {
                     i += 1;
                 }
-            } else if (c < 0xF0) { // 3-byte form
-                if ((i + 2) < length && 
-                        ((string[i]     & 0xC0) == 0x80) && 
+            } else if (c < 0xF0) {  // 3-byte form
+                if ((i + 2) < length &&
+                        ((string[i]     & 0xC0) == 0x80) &&
                         ((string[i + 1] & 0xC0) == 0x80)) {
                     i += 2;
                 }
-            } else { // 4-byte form
-                if ((i + 3) < length && 
-                        ((string[i]     & 0xC0) == 0x80) && 
-                        ((string[i + 1] & 0xC0) == 0x80) && 
+            } else {  // 4-byte form
+                if ((i + 3) < length &&
+                        ((string[i]     & 0xC0) == 0x80) &&
+                        ((string[i + 1] & 0xC0) == 0x80) &&
                         ((string[i + 2] & 0xC0) == 0x80)) {
                     i += 3;
                 }
@@ -646,23 +647,23 @@ Text* Text::utfSubstr(int start, int len) {
         c = string[i] & 0xFF;
         i += 1;
         t->append(c);
-        if (c >= 0xC0) { 
-            if (c < 0xE0) { // 2-byte form
+        if (c >= 0xC0) {
+            if (c < 0xE0) {  // 2-byte form
                 if ((i + 1) < length && ((string[i] & 0xC0) == 0x80)) {
                     t->append(string[i]);
                     i += 1;
                 }
-            } else if (c < 0xF0) { // 3-byte form
-                if ((i + 2) < length && 
-                        ((string[i]     & 0xC0) == 0x80) && 
+            } else if (c < 0xF0) {  // 3-byte form
+                if ((i + 2) < length &&
+                        ((string[i]     & 0xC0) == 0x80) &&
                         ((string[i + 1] & 0xC0) == 0x80)) {
                     t->append(&string[i], 2);
                     i += 2;
                 }
-            } else { // 4-byte form
-                if ((i + 3) < length && 
-                        ((string[i]     & 0xC0) == 0x80) && 
-                        ((string[i + 1] & 0xC0) == 0x80) && 
+            } else {  // 4-byte form
+                if ((i + 3) < length &&
+                        ((string[i]     & 0xC0) == 0x80) &&
+                        ((string[i + 1] & 0xC0) == 0x80) &&
                         ((string[i + 2] & 0xC0) == 0x80)) {
                     t->append(&string[i], 3);
                     i += 3;
@@ -693,11 +694,11 @@ bool Text::write(Text* filename) {
 }
 
 
-// hash is based on work by Bob Jenkins, 1996.  bob_jenkins@burtleburtle.net.  
+// hash is based on work by Bob Jenkins, 1996.  bob_jenkins@burtleburtle.net.
 // See http://burtleburtle.net/bob/hash/evahash.html
 
 
-#define mix(a,b,c) { \
+#define mix(a, b, c) { \
   a -= b; a -= c; a ^= (c >> 13); \
   b -= c; b -= a; b ^= (a << 8);  \
   c -= a; c -= b; c ^= (b >> 13); \
@@ -711,37 +712,46 @@ bool Text::write(Text* filename) {
 
 uint32 Text::hash() {
     if (myHash) {
-        return myHash; // If we have already memoized the hash, use it.
+        return myHash;  // If we have already memoized the hash, use it.
     }
     register uint32  a = 0;
     register uint32  b = 0xDEADBEAD;
     register uint32  c = 0xCAFEB00B;
-    register uint8* k = (uint8*)string; 
-    register int  len = length; 
+    register uint8* k = reinterpret_cast<uint8*>(string);
+    register int  len = length;
 
     while (len >= 12) {
-        a += (uint32)k[0] + ((uint32)k[1] << 8) + ((uint32)k[2] << 16) + ((uint32)k[3] <<24);
-        b += (uint32)k[4] + ((uint32)k[5] << 8) + ((uint32)k[6] << 16) + ((uint32)k[7] <<24);
-        c += (uint32)k[8] + ((uint32)k[9] << 8) + ((uint32)k[10]<< 16) + ((uint32)k[11]<<24);
-        mix(a,b,c);
-        k += 12; 
+        a += static_cast<uint32>(k[0]) +
+             (static_cast<uint32>(k[1] << 8)) +
+             (static_cast<uint32>(k[2] << 16)) +
+             (static_cast<uint32>(k[3] <<24));
+        b += static_cast<uint32>(k[4]) +
+             (static_cast<uint32>(k[5] << 8)) +
+             (static_cast<uint32>(k[6] << 16)) +
+             (static_cast<uint32>(k[7] <<24));
+        c += static_cast<uint32>(k[8]) +
+             (static_cast<uint32>(k[9] << 8)) +
+             (static_cast<uint32>(k[10]<< 16)) +
+             (static_cast<uint32>(k[11]<<24));
+        mix(a, b, c);
+        k += 12;
         len -= 12;
     }
     c += length;
     switch (len) {
-    case 11: c += (uint32)k[10] << 24;
-    case 10: c += (uint32)k[9]  << 16;
-    case 9:  c += (uint32)k[8]  <<  8;
-    case 8:  b += (uint32)k[7]  << 24;
-    case 7:  b += (uint32)k[6]  << 16;
-    case 6:  b += (uint32)k[5]  <<  8;
-    case 5:  b += (uint32)k[4];
-    case 4:  a += (uint32)k[3]  << 24;
-    case 3:  a += (uint32)k[2]  << 16;
-    case 2:  a += (uint32)k[1]  <<  8;
-    case 1:  a += (uint32)k[0];
+    case 11: c += static_cast<uint32>(k[10] << 24);
+    case 10: c += static_cast<uint32>(k[9]  << 16);
+    case 9:  c += static_cast<uint32>(k[8]  <<  8);
+    case 8:  b += static_cast<uint32>(k[7]  << 24);
+    case 7:  b += static_cast<uint32>(k[6]  << 16);
+    case 6:  b += static_cast<uint32>(k[5]  <<  8);
+    case 5:  b += static_cast<uint32>(k[4]);
+    case 4:  a += static_cast<uint32>(k[3]  << 24);
+    case 3:  a += static_cast<uint32>(k[2]  << 16);
+    case 2:  a += static_cast<uint32>(k[1]  <<  8);
+    case 1:  a += static_cast<uint32>(k[0]);
     }
-    mix(a,b,c);
+    mix(a, b, c);
     myHash = c;
     return c;
 }

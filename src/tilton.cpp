@@ -4,7 +4,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -15,11 +15,14 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
+#include "tilton.h"
 
 #include <stdio.h>
 #include <string.h>
-#include "tilton.h"
+
 #include "text.h"
 #include "iter.h"
 #include "context.h"
@@ -36,19 +39,18 @@ Text* theOutput = NULL;
 // main processes the command line arguments and evaluates the standard
 // input.
 
-int main(int argc, const char * argv[]) 
-{
+int main(int argc, const char * argv[]) {
     bool go = true;
     Text* name = NULL;
     Text* string = NULL;
     const char* arg;
-    int i = 0; // index of argv
-    int j = 0; // index of context parameter
+    int i = 0;  // index of argv
+    int j = 0;  // index of context parameter
     Context* context = new Context(NULL, NULL);
     Text* in = new Text();
     theOutput = new Text(1024);
     FunctionContext* builtins = new FunctionContext;
-    
+
     builtins->registerTiltonFunctions(macroTable);
 
 
@@ -59,14 +61,13 @@ int main(int argc, const char * argv[])
         arg = argv[i];
         i += 1;
 
-// if an arg starts with '-', then it is special, Otherwise, stuff it into 
+// if an arg starts with '-', then it is special, Otherwise, stuff it into
 // the next slot in the context. We match just the first letter of commands.
 
         if (arg[0] == '-') {
             switch (arg[1]) {
-
 // -eval expression
-            case 'e': 
+            case 'e':
                 if (i < argc) {
                     string = new Text(argv[i]);
                     i += 1;
@@ -79,7 +80,7 @@ int main(int argc, const char * argv[])
                 break;
 
 // -go (process the standard input now)
-            case 'g': 
+            case 'g':
                 in->input();
                 in->setName("[go]");
                 context->eval(in);
@@ -103,7 +104,7 @@ int main(int argc, const char * argv[])
                 return 0;
 
 // -include filespec
-            case 'i': 
+            case 'i':
                 if (i < argc) {
                     name = new Text(argv[i]);
                     i += 1;
@@ -120,17 +121,17 @@ int main(int argc, const char * argv[])
                 break;
 
 // -mute
-            case 'm': 
+            case 'm':
                 theOutput->length = 0;
                 break;
 
 // -no (do not process the standard input)
-            case 'n': 
+            case 'n':
                 go = false;
                 break;
 
 // -read filespec
-            case 'r': 
+            case 'r':
                 if (i < argc) {
                     name = new Text(argv[i]);
                     i += 1;
@@ -147,7 +148,7 @@ int main(int argc, const char * argv[])
                 break;
 
 // -set name string
-            case 's': 
+            case 's':
                 if (i + 1 < argc) {
                     name = new Text(argv[i]);
                     i += 1;
@@ -158,12 +159,11 @@ int main(int argc, const char * argv[])
                     delete string;
                 } else {
                     context->error("Missing parameter on -set ");
-
                 }
                 break;
 
 // -write filespec
-            case 'w': 
+            case 'w':
                 if (i < argc) {
                     name = new Text(argv[i]);
                     i += 1;
@@ -178,19 +178,17 @@ int main(int argc, const char * argv[])
                 break;
 
 // -DIGIT
-            default: 
+            default:
                 int k = arg[1] - '0';
                 if (k >= 0 && k <= 9 && i < argc) {
                     j = k;
                 } else {
-
 // none of the above
-                    context->error("Unrecognized command line parameter", 
+                    context->error("Unrecognized command line parameter",
                                    new Text(arg));
                 }
             }
         } else {
-
 // parameter text
             context->getNode(j)->value = new Text(arg);
             j += 1;

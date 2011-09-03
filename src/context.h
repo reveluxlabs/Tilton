@@ -3,7 +3,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -14,10 +14,12 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-#ifndef __CONTEXT_H_
-#define __CONTEXT_H_
+#ifndef SRC_CONTEXT_H_
+#define SRC_CONTEXT_H_
 
 #include "tilton.h"
 #include "iter.h"
@@ -27,20 +29,20 @@ class Text;
 class Node;
 
 class Context {
-public:
+ public:
     Context(Context*, Iter*);
     virtual ~Context();
 
     void    add(const char* s);
-    void    add(Text*);
+    void    add(Text* t);
     void    dump();
     void    error(const char* reason, Text* evidence);
     void    error(const char* reason);
     void    eval(Text* input);
     Text*   evalArg(int argNr);
-    Text*   evalArg(Node*); 
+    Text*   evalArg(Node* n);
     number  evalNumber(int argNr);
-    number  evalNumber(Node*);
+    number  evalNumber(Node* n);
     Node*   getNode(int argNr);
     void    nop();
     void    resetArg(int argNr);
@@ -48,7 +50,7 @@ public:
     Node*   first;
     Context* previous;
 
-private:
+ private:
     int     character;
     int     index;
     int     line;
@@ -56,20 +58,20 @@ private:
     Iter*   source;
     Node*   last;
     void    whereError(Text* report);
-    void    evalAngle(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext);
-    void    evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext);    
-    void    evalEOT(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext);
+    void    evalAngle(Iter* in, int &depth, Text* theOutput, int &tildesSeen,
+                      Context* &newContext);
+    void    evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen,
+                      Context* &newContext);
+    void    evalEOT(Iter* in, int &depth, Text* theOutput, int &tildesSeen,
+                      Context* &newContext);
     void    evalMacro(Context* &newContext);
-    bool    isDigit(int argNo)
-    {
+    bool    isDigit(int argNo) {
         return argNo >= 0 && argNo <= 9;
     }
-    bool    stackEmpty(int depth)
-    {
+    bool    stackEmpty(int depth) {
         return depth == 0;
     }
-    int     checkForTilde(Iter* in, int no)
-    {
+    int     checkForTilde(Iter* in, int no) {
         while (in->next() == '~') {
             no += 1;
         }
@@ -80,4 +82,4 @@ private:
     void     setMacroVariable(int varNo, Text* t);
 };
 
-#endif // __CONTEXT_H_
+#endif  // SRC_CONTEXT_H_

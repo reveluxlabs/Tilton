@@ -4,7 +4,7 @@
 //
 //  Tilton Macro Processor
 //
-//  Tilton is a simple macro processor. It is small, 
+//  Tilton is a simple macro processor. It is small,
 //  portable, and Unicode compatible.
 //  Written by Douglas Crockford [ www.crockford.com/tilton ]
 //  2006-10-06
@@ -15,24 +15,28 @@
 // Version 0.7
 // 1Sep11
 //
+// Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
+//
 // This version of Tilton is licensed under the MIT license.
 
-//  Context is the key datastructure in Tilton. It keeps a collection of 
+//  Context is the key datastructure in Tilton. It keeps a collection of
 //  parameters in numbered slots. We keep in each slot a raw string
 //  and an evaluated value (for memoization).
 
-//  A Context can point to a previous context, which allows contexts to be 
-//  nested. A Context can also include source information for use in error 
+//  A Context can point to a previous context, which allows contexts to be
+//  nested. A Context can also include source information for use in error
 //  messages.
+
+#include "context.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "tilton.h"
-#include "text.h"
+
 #include "iter.h"
-#include "context.h"
 #include "node.h"
 #include "search.h"
+#include "tilton.h"
+#include "text.h"
 
 extern Text* theOutput;
 extern SearchList* macroTable;
@@ -110,16 +114,16 @@ void Context::error(const char* reason, Text* evidence) {
 }
 
 
-//  eval is the heart of Tilton. It is called on a context which is the 
-//  container of the source of <~NUMBER~> parameters. It scans its input text 
-//  for <~ ~> patterns which it builds into new contexts and recursively 
-//  evaluates. Characters outside of the <~ ~> are treated as literal. 
-//  Within <~ ~>, substrings are produced, separated by ~ . These are stored 
-//  in the new context as argument strings. Any nested <~ ~> sequences within 
-//  the arguments are treated for now as literal (lazy evaluation). The [0] 
-//  argument is the name of the macro to be invoked. 
+//  eval is the heart of Tilton. It is called on a context which is the
+//  container of the source of <~NUMBER~> parameters. It scans its input text
+//  for <~ ~> patterns which it builds into new contexts and recursively
+//  evaluates. Characters outside of the <~ ~> are treated as literal.
+//  Within <~ ~>, substrings are produced, separated by ~ . These are stored
+//  in the new context as argument strings. Any nested <~ ~> sequences within
+//  the arguments are treated for now as literal (lazy evaluation). The [0]
+//  argument is the name of the macro to be invoked.
 
-//  Tilton is so simple that parsing and evaluation take place at the same 
+//  Tilton is so simple that parsing and evaluation take place at the same
 //  time.
 
 void Context::eval(Text* input) {
@@ -133,7 +137,6 @@ void Context::eval(Text* input) {
 
   for (;;) {
     switch ((c = in->next())) {
-
     case '<':
         this->evalAngle(in, depth, theOutput, tildesSeen, newContext);
         break;
@@ -154,16 +157,16 @@ void Context::eval(Text* input) {
   }
 }
 
-void Context::evalAngle(Iter* in, int &depth, Text* theOutput, 
+void Context::evalAngle(Iter* in, int &depth, Text* theOutput,
                         int &tildesSeen, Context* &newContext) {
   int runLength;     // the number of tildes currently under consideration
-  
+
   runLength = checkForTilde(in, 0);
-  
+
   if (!stackEmpty(depth)) {
     if (runLength) {
         depth += 1;
-    } 
+    }
     theOutput->addToString('<');
     theOutput->addToString('~', runLength);
   } else if (runLength) {
@@ -176,8 +179,8 @@ void Context::evalAngle(Iter* in, int &depth, Text* theOutput,
   }
 }
 
-void Context::evalTilde(Iter* in, int &depth, Text* theOutput, 
-                        int &tildesSeen, Context* &newContext){
+void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
+                        int &tildesSeen, Context* &newContext) {
   int argNo;         // argument number
   int c;             // current character
   int i;             // loop counter
@@ -186,7 +189,7 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
   int runLength;     // the number of tildes currently under consideration
 
   runLength = checkForTilde(in, 1);
-  
+
   if (depth == 1 && runLength >= tildesSeen) {
     newContext->add(theOutput->removeFromString(newContext->position));
     for (;;) {
@@ -195,9 +198,9 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
       newContext->add(new Text());
     }
   }
-  
+
   theOutput->addToString('~', runLength);
-  
+
   if (in->peek() == '>') {
       //  ~>
       in->next();
@@ -209,7 +212,7 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
               if (runLength) {
                   newContext->error("Short ~>");
               }
-              //    apply:           
+              //    apply:
               n = newContext->first;
               //    <~NUMBER~>
               s = n->text;
@@ -224,12 +227,14 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
                       argNo = argNo * 10 + c;
                   }
                   if (argNo >= 0) {
-                      if (!n->next) { 
+                      if (!n->next) {
                           theOutput->addToString(this->evalArg(argNo));
                       } else {
                           //    <~NUMBER~value~>
                           n = newContext->getNode(argNo);
-                          if (!n->hasValue()) Context::evalTextForArg(1, newContext, theOutput);
+                          if (!n->hasValue()) {
+                            Context::evalTextForArg(1, newContext, theOutput);
+                          }
                           Context::setMacroVariable(argNo, n->value);
                       }
                       delete newContext;
@@ -242,11 +247,11 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
       } else {
           (new Context(this, in))->error("Extra ~>");
       }
-  }    
+  }
 }
 
-void Context::evalTextForArg(int argNo, Context* &newContext, Text* &theOutput)
-{
+void Context::evalTextForArg(int argNo, Context* &newContext,
+                             Text* &theOutput) {
   Node* n;
 
   n = newContext->getNode(argNo);
@@ -254,8 +259,7 @@ void Context::evalTextForArg(int argNo, Context* &newContext, Text* &theOutput)
   n->value = theOutput->removeFromString(newContext->position);
 }
 
-void Context::setMacroVariable(int varNo, Text* t)
-{
+void Context::setMacroVariable(int varNo, Text* t) {
   Node* o;
 
   o = this->getNode(varNo);
@@ -266,11 +270,10 @@ void Context::setMacroVariable(int varNo, Text* t)
   o->value = new Text(t);
 }
 
-void Context::evalMacro(Context* &newContext)
-{
+void Context::evalMacro(Context* &newContext) {
     Text* macro;
     Text* name;
-    
+
     name = newContext->evalArg(0);
     macro = macroTable->lookup(name);
     if (macro) {
@@ -284,29 +287,27 @@ void Context::evalMacro(Context* &newContext)
         newContext->error("Undefined macro");
     }
     delete newContext;
-    newContext = NULL;    
+    newContext = NULL;
 }
 
-void Context::evalEOT(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext)
-{
+void Context::evalEOT(Iter* in, int &depth, Text* theOutput,
+                      int &tildesSeen, Context* &newContext) {
     if (depth) {
         newContext->error("Missing ~>");
     }
     delete in;
 }
 
-//  evalArg - Get an argument of a macro. If we have already determined its 
+//  evalArg - Get an argument of a macro. If we have already determined its
 //  value, then simply return it. Otherwise, evaluate the argument to obtain
 //  its value (memoization).
 
-Text* Context::evalArg(int argNr) 
-{
+Text* Context::evalArg(int argNr) {
     return evalArg(getNode(argNr));
 }
 
 
-Text* Context::evalArg(Node* n) 
-{
+Text* Context::evalArg(Node* n) {
     if (n == NULL) {
         return NULL;
     }
@@ -323,14 +324,12 @@ Text* Context::evalArg(Node* n)
 }
 
 
-number Context::evalNumber(int argNr) 
-{
+number Context::evalNumber(int argNr) {
     return evalNumber(getNode(argNr));
 }
 
 
-number Context::evalNumber(Node* n) 
-{
+number Context::evalNumber(Node* n) {
     if (!n) {
         return 0;
     }
@@ -342,8 +341,7 @@ number Context::evalNumber(Node* n)
 }
 
 
-Node* Context::getNode(int argNr)
-{
+Node* Context::getNode(int argNr) {
     Node* p;
     if (!first) {
         first = last = new Node(NULL);
@@ -388,9 +386,9 @@ void Context::whereError(Text* report) {
     if (source) {
         report->append(source->text->name, source->text->nameLength);
         report->append('(');
-        report->appendNumber(line + 1); 
+        report->appendNumber(line + 1);
         report->append(',');
-        report->appendNumber(character + 1); 
+        report->appendNumber(character + 1);
         report->append('/');
         report->appendNumber(index + 1);
         report->append(") ");
