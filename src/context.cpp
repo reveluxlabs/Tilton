@@ -123,126 +123,126 @@ void Context::error(const char* reason, Text* evidence) {
 //  time.
 
 void Context::eval(Text* input) {
-    int c;                 // current character
-    int depth = 0;         // depth of nested <~ ~>
-    int tildesSeen= 0;     // the number of tildes in the separator ~~~
-    Context* newContext = NULL;
-    Iter* in = new Iter(input);
+  int c;                 // current character
+  int depth = 0;         // depth of nested <~ ~>
+  int tildesSeen= 0;     // the number of tildes in the separator ~~~
+  Context* newContext = NULL;
+  Iter* in = new Iter(input);
 
 // Loop over the characters in the input
 
-    for (;;) {
-        switch ((c = in->next())) {
+  for (;;) {
+    switch ((c = in->next())) {
 
-        case '<':
-            this->evalAngle(in, depth, theOutput, tildesSeen, newContext);
-            break;
+    case '<':
+        this->evalAngle(in, depth, theOutput, tildesSeen, newContext);
+        break;
 
-        case '~':
-            this->evalTilde(in, depth, theOutput, tildesSeen, newContext);
-            break;
+    case '~':
+        this->evalTilde(in, depth, theOutput, tildesSeen, newContext);
+        break;
 
-        case EOT:
-            this->evalEOT(in, depth, theOutput, tildesSeen, newContext);
-            return;
+    case EOT:
+        this->evalEOT(in, depth, theOutput, tildesSeen, newContext);
+        return;
 
 // literal character
-        default:
-            theOutput->addToString(c);
-            break;
-        }
+    default:
+        theOutput->addToString(c);
+        break;
     }
+  }
 }
 
-void Context::evalAngle(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext)
-{
-    int runLength;     // the number of tildes currently under consideration
-    
-    runLength = checkForTilde(in, 0);
-    
-    if (!stackEmpty(depth)) {
-        if (runLength) {
-            depth += 1;
-        } 
-        theOutput->addToString('<');
-        theOutput->addToString('~', runLength);
-    } else if (runLength) {
-        depth = 1;
-        tildesSeen = runLength;
-        newContext = new Context(this, in);
-        newContext->position = theOutput->length;
-    } else {
-        theOutput->addToString('<');
-    }
-}
-
-void Context::evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen, Context* &newContext)
-{
-    int argNo;         // argument number
-    int c;             // current character
-    int i;             // loop counter
-    Node* n;           // current node
-    Text* s;           // current text
-    int runLength;     // the number of tildes currently under consideration
-
-    runLength = checkForTilde(in, 1);
-    
-    if (depth == 1 && runLength >= tildesSeen) {
-        newContext->add(theOutput->removeFromString(newContext->position));
-        for (;;) {
-            runLength -= tildesSeen;
-            if (runLength < tildesSeen) break;
-            newContext->add(new Text());
-        }
-    }
-    
+void Context::evalAngle(Iter* in, int &depth, Text* theOutput, 
+                        int &tildesSeen, Context* &newContext) {
+  int runLength;     // the number of tildes currently under consideration
+  
+  runLength = checkForTilde(in, 0);
+  
+  if (!stackEmpty(depth)) {
+    if (runLength) {
+        depth += 1;
+    } 
+    theOutput->addToString('<');
     theOutput->addToString('~', runLength);
-    
-    if (in->peek() == '>') {
-        //  ~>
-        in->next();
-        if (!stackEmpty(depth)) {
-            depth -= 1;
-            if (!stackEmpty(depth)) {
-                theOutput->addToString('>');
-            } else {
-                if (runLength) {
-                    newContext->error("Short ~>");
-                }
-                //    apply:           
-                n = newContext->first;
-                //    <~NUMBER~>
-                s = n->text;
-                argNo = s->getChar(0) - '0';
-                if (isDigit(argNo)) {
-                    for (i = 1; i < s->length; i += 1) {
-                        c = s->getChar(0) - '0';
-                        if (c < 0 || c > 9) {
-                            argNo = -1;
-                            break;
-                        }
-                        argNo = argNo * 10 + c;
-                    }
-                    if (argNo >= 0) {
-                        if (!n->next) { 
-                            theOutput->addToString(this->evalArg(argNo));
-                        } else {
-                            //    <~NUMBER~value~>
-                            n = newContext->getNode(argNo);
-                            if (!n->hasValue()) Context::evalTextForArg(1, newContext, theOutput);
-                            Context::setMacroVariable(argNo, n->value);
-                        }
-                        delete newContext;
-                        return;
-                    }
-                }
-                //    look up
-                Context::evalMacro(newContext);
-            }
-        } else {
-            (new Context(this, in))->error("Extra ~>");
-        }
-    }    
+  } else if (runLength) {
+    depth = 1;
+    tildesSeen = runLength;
+    newContext = new Context(this, in);
+    newContext->position = theOutput->length;
+  } else {
+    theOutput->addToString('<');
+  }
+}
+
+void Context::evalTilde(Iter* in, int &depth, Text* theOutput, 
+                        int &tildesSeen, Context* &newContext){
+  int argNo;         // argument number
+  int c;             // current character
+  int i;             // loop counter
+  Node* n;           // current node
+  Text* s;           // current text
+  int runLength;     // the number of tildes currently under consideration
+
+  runLength = checkForTilde(in, 1);
+  
+  if (depth == 1 && runLength >= tildesSeen) {
+    newContext->add(theOutput->removeFromString(newContext->position));
+    for (;;) {
+      runLength -= tildesSeen;
+      if (runLength < tildesSeen) break;
+      newContext->add(new Text());
+    }
+  }
+  
+  theOutput->addToString('~', runLength);
+  
+  if (in->peek() == '>') {
+      //  ~>
+      in->next();
+      if (!stackEmpty(depth)) {
+          depth -= 1;
+          if (!stackEmpty(depth)) {
+              theOutput->addToString('>');
+          } else {
+              if (runLength) {
+                  newContext->error("Short ~>");
+              }
+              //    apply:           
+              n = newContext->first;
+              //    <~NUMBER~>
+              s = n->text;
+              argNo = s->getChar(0) - '0';
+              if (isDigit(argNo)) {
+                  for (i = 1; i < s->length; i += 1) {
+                      c = s->getChar(0) - '0';
+                      if (c < 0 || c > 9) {
+                          argNo = -1;
+                          break;
+                      }
+                      argNo = argNo * 10 + c;
+                  }
+                  if (argNo >= 0) {
+                      if (!n->next) { 
+                          theOutput->addToString(this->evalArg(argNo));
+                      } else {
+                          //    <~NUMBER~value~>
+                          n = newContext->getNode(argNo);
+                          if (!n->hasValue()) Context::evalTextForArg(1, newContext, theOutput);
+                          Context::setMacroVariable(argNo, n->value);
+                      }
+                      delete newContext;
+                      return;
+                  }
+              }
+              //    look up
+              Context::evalMacro(newContext);
+          }
+      } else {
+          (new Context(this, in))->error("Extra ~>");
+      }
+  }    
 }
 
 void Context::evalTextForArg(int argNo, Context* &newContext, Text* &theOutput)

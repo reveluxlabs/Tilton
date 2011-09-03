@@ -20,6 +20,7 @@
 #define __CONTEXT_H_
 
 #include "tilton.h"
+#include "iter.h"
 
 class Iter;
 class Text;

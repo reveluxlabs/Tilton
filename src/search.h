@@ -16,6 +16,9 @@
 //
 // This version of Tilton is licensed under the MIT license.
 
+#ifndef __SEARCH_H_
+#define __SEARCH_H_
+
 #include "tilton.h"
 #include "text.h"
 
@@ -44,3 +47,5 @@ private:
     void  setList(uint32, Text*);
     void  link(Text* name, Text* t);
 };
+
+#endif  // __SEARCH_H_
