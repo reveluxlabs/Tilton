@@ -58,11 +58,11 @@ class Context {
     Iter*   source;
     Node*   last;
     void    whereError(Text* report);
-    void    evalAngle(Iter* in, int &depth, Text* theOutput, int &tildesSeen,
+    void    evalAngle(Iter* in, int &depth, Text* g_theOutput, int &tildesSeen,
                       Context* &newContext);
-    void    evalTilde(Iter* in, int &depth, Text* theOutput, int &tildesSeen,
+    void    evalTilde(Iter* in, int &depth, Text* g_theOutput, int &tildesSeen,
                       Context* &newContext);
-    void    evalEOT(Iter* in, int &depth, Text* theOutput, int &tildesSeen,
+    void    evalEOT(Iter* in, int &depth, Text* g_theOutput, int &tildesSeen,
                       Context* &newContext);
     void    evalMacro(Context* &newContext);
     bool    isDigit(int argNo) {
@@ -78,7 +78,7 @@ class Context {
         in->back();
         return no;
     }
-    void     evalTextForArg(int argNo, Context* &newContext, Text* &theOutput);
+    void     evalTextForArg(int argNo, Context* &newContext, Text* &g_theOutput);
     void     setMacroVariable(int varNo, Text* t);
 };
 

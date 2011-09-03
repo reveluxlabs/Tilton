@@ -25,8 +25,8 @@
 #include "node.h"
 #include "context.h"
 
-extern Text* theOutput;
-extern SearchList* macroTable;
+extern Text* g_theOutput;
+extern SearchList* g_macroTable;
 static number theSequenceNumber = 1000;
 
 // reduce - reduce a list of parameters to a single value. This is used
@@ -54,7 +54,7 @@ static void reduce(Context* context, number num, number (*f)(number, number)) {
             }
         }
     }
-    theOutput->appendNumber(num);
+    g_theOutput->appendNumber(num);
 }
 
 static number add(number first, number second) {
@@ -98,7 +98,7 @@ static void test(Context* context, int (*f)(Text*, Text*)) {
     }
     for (;;) {
         if (f(swich, context->evalArg(c))) {  // then
-            theOutput->append(context->evalArg(t));
+            g_theOutput->append(context->evalArg(t));
             return;
         }
         c = t->next;
@@ -107,7 +107,7 @@ static void test(Context* context, int (*f)(Text*, Text*)) {
         }
         t = c->next;
         if (!t) {    // else
-            theOutput->append(context->evalArg(c));
+            g_theOutput->append(context->evalArg(c));
             return;
         }
     }
@@ -160,7 +160,7 @@ static void tilton_and(Context* context) {
         }
         n = n->next;
     }
-    theOutput->append(t);
+    g_theOutput->append(t);
 }
 
 
@@ -176,7 +176,7 @@ static void tilton_append(Context* context) {
         context->error("Missing name");
     }
 
-    Text* t = macroTable->getDef(name);
+    Text* t = g_macroTable->getDef(name);
 
     for (;;) {
         n = n->next;
@@ -191,21 +191,21 @@ static void tilton_append(Context* context) {
 //  tilton define
 
 static void tilton_define(Context* context) {
-    int position = theOutput->length;
-    theOutput->append(context->getNode(2)->text);
+    int position = g_theOutput->length;
+    g_theOutput->append(context->getNode(2)->text);
     Text* name = context->evalArg(1);
     if (name->length < 1) {
         context->error("Missing name");
     }
-    macroTable->install(name, theOutput->tail(position));
+    g_macroTable->install(name, g_theOutput->tail(position));
 }
 
 
 //  tilton defined?
 
 static void tilton_defined_(Context* context) {
-  theOutput->append(
-      context->evalArg(macroTable->lookup(context->evalArg(1)) ? 2 : 3));
+  g_theOutput->append(
+      context->evalArg(g_macroTable->lookup(context->evalArg(1)) ? 2 : 3));
 }
 
 
@@ -215,16 +215,16 @@ static void tilton_delete(Context* context) {
     Node* n = context->first->next;
     while (n) {
         Text* name = context->evalArg(n);
-        // Text* t = macroTable->getList(name->hash() & MAXHASH);
-        Text* t = macroTable->lookup(name);
+        // Text* t = g_macroTable->getList(name->hash() & MAXHASH);
+        Text* t = g_macroTable->lookup(name);
         Text* u = NULL;
         while (t) {
             if (t->isName(name)) {
                 if (u) {
                     u->link = t->link;
                 } else {
-                    macroTable->install(name, t->link);
-                    // macroTable->setList(name->hash() & MAXHASH, t->link);
+                    g_macroTable->install(name, t->link);
+                    // g_macroTable->setList(name->hash() & MAXHASH, t->link);
                 }
                 delete t;
                 break;
@@ -247,7 +247,7 @@ static void tilton_div(Context* context) {
 //  tilton dump
 
 static void tilton_dump(Context* context) {
-    macroTable->dump();
+    g_macroTable->dump();
     context->nop();
 }
 
@@ -264,28 +264,28 @@ static void tilton_entityify(Context* context) {
             c = t->getChar(i);
             switch (c) {
                 case '&':
-                    theOutput->append("&amp;");
+                    g_theOutput->append("&amp;");
                     break;
                 case '<':
-                    theOutput->append("&lt;");
+                    g_theOutput->append("&lt;");
                     break;
                 case '>':
-                    theOutput->append("&gt;");
+                    g_theOutput->append("&gt;");
                     break;
                 case '"':
-                    theOutput->append("&quot;");
+                    g_theOutput->append("&quot;");
                     break;
                 case '\'':
-                    theOutput->append("&#039;");
+                    g_theOutput->append("&#039;");
                     break;
                 case '\\':
-                    theOutput->append("&#092;");
+                    g_theOutput->append("&#092;");
                     break;
                 case '~':
-                    theOutput->append("&#126;");
+                    g_theOutput->append("&#126;");
                     break;
                 default:
-                    theOutput->append(c);
+                    g_theOutput->append(c);
             }
         }
     }
@@ -327,7 +327,7 @@ static void tilton_first(Context* context) {
     if (name->length < 1) {
         context->error("Missing name: first");
     }
-    Text* string = macroTable->lookup(name);
+    Text* string = g_macroTable->lookup(name);
     if (!string) {
         context->error("Undefined variable", name);
         return;
@@ -347,7 +347,7 @@ static void tilton_first(Context* context) {
             len = d->length;
         }
     }
-    theOutput->append(string->string, r);
+    g_theOutput->append(string->string, r);
     string->substr(r + len, string->length - (r + len));
     n = context->previous->getNode(0);
     delete n->text;
@@ -368,7 +368,7 @@ static void tilton_ge_(Context* context) {
 
 static void tilton_gensym(Context* context) {
     theSequenceNumber += 1;
-    theOutput->appendNumber(theSequenceNumber);
+    g_theOutput->appendNumber(theSequenceNumber);
     context->nop();
 }
 
@@ -379,9 +379,9 @@ static void tilton_get(Context* context) {
     Node* n = context->first->next;
     while (n) {
         Text* name = context->evalArg(n);
-        Text* macro = macroTable->lookup(name);
+        Text* macro = g_macroTable->lookup(name);
         if (macro) {
-            theOutput->append(macro);
+            g_theOutput->append(macro);
         } else {
             context->error("Undefined variable", name);
         }
@@ -429,7 +429,7 @@ static void tilton_last(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    Text* string = macroTable->lookup(name);
+    Text* string = g_macroTable->lookup(name);
     if (!string) {
         context->error("Undefined variable", name);
         return;
@@ -449,7 +449,7 @@ static void tilton_last(Context* context) {
             len = d->length;
         }
     }
-    theOutput->append(string->string + r + len,
+    g_theOutput->append(string->string + r + len,
                       string->length - (r + len));
     string->length = r;
     n = context->previous->getNode(0);
@@ -470,14 +470,14 @@ static void tilton_le_(Context* context) {
 //  tilton length
 
 static void tilton_length(Context* context) {
-    theOutput->appendNumber(context->evalArg(1)->utfLength());
+    g_theOutput->appendNumber(context->evalArg(1)->utfLength());
 }
 
 
 //  tilton literal
 
 static void tilton_literal(Context* context) {
-    theOutput->append(context->getNode(1)->text);
+    g_theOutput->append(context->getNode(1)->text);
 }
 
 
@@ -489,7 +489,7 @@ static void tilton_loop(Context* context) {
     while (context->evalArg(1)->length > 0) {
         context->resetArg(1);
         context->resetArg(2);
-        theOutput->append(context->evalArg(2));
+        g_theOutput->append(context->evalArg(2));
     }
 }
 
@@ -544,7 +544,7 @@ static void tilton_null(Context* context) {
 
 static void tilton_number_(Context* context) {
     number num = context->evalArg(1)->getNumber();
-    theOutput->append(context->evalArg(num != NAN ? 2 : 3));
+    g_theOutput->append(context->evalArg(num != NAN ? 2 : 3));
 }
 
 
@@ -560,7 +560,7 @@ static void tilton_or(Context* context) {
         }
         n = n->next;
     }
-    theOutput->append(t);
+    g_theOutput->append(t);
 }
 
 
@@ -579,7 +579,7 @@ static void tilton_read(Context* context) {
     if (!string->read(name)) {
         context->error("Error in reading file", name);
     }
-    theOutput->append(string);
+    g_theOutput->append(string);
     delete string;
 }
 
@@ -590,7 +590,7 @@ static void tilton_rep(Context* context) {
     // Node* n = context->first->next;
     Text* value = context->evalArg(1);
     for (number num = context->evalNumber(2); num > 0; num -= 1) {
-        theOutput->append(value);
+        g_theOutput->append(value);
     }
 }
 
@@ -601,7 +601,7 @@ static void tilton_set(Context* context) {
     if (name->length < 1) {
         context->error("Missing name");
     }
-    macroTable->install(name, context->evalArg(2));
+    g_macroTable->install(name, context->evalArg(2));
 }
 
 
@@ -619,10 +619,10 @@ static void tilton_slashify(Context* context) {
                 case '\\':  // backslash
                 case '\'':  // single quote
                 case  '"':  // double quote
-                    theOutput->append('\\');
+                    g_theOutput->append('\\');
                     break;
             }
-            theOutput->append(c);
+            g_theOutput->append(c);
         }
     }
 }
@@ -659,7 +659,7 @@ static void tilton_substr(Context* context) {
             ber = context->evalNumber(n);
         }
         if (num >= 0 && ber > 0) {
-            theOutput->append(context->evalArg(1)->utfSubstr((int)num,
+            g_theOutput->append(context->evalArg(1)->utfSubstr((int)num,
                                                              (int)ber));
         }
     }
@@ -671,7 +671,7 @@ static void tilton_substr(Context* context) {
 static void tilton_trim(Context* context) {
     Node* n = context->first->next;
     while (n) {
-        theOutput->trim(context->evalArg(n));
+        g_theOutput->trim(context->evalArg(n));
         n = n->next;
     }
 }
@@ -686,19 +686,19 @@ static void tilton_unicode(Context* context) {
         if (num >= 0) {
             int i = (int)num;
             if (i <= 0x7F) {
-                theOutput->append(i);
+                g_theOutput->append(i);
             } else if (i <= 0x7FF) {
-                theOutput->append(0xC000 |  (i >> 6));
-                theOutput->append(0x8000 |  (i        & 0x3F));
+                g_theOutput->append(0xC000 |  (i >> 6));
+                g_theOutput->append(0x8000 |  (i        & 0x3F));
             } else if (i <= 0xFFFF) {
-                theOutput->append(0xE000 |  (i >> 12));
-                theOutput->append(0x8000 | ((i >> 6)  & 0x3F));
-                theOutput->append(0x8000 |  (i        & 0x3F));
+                g_theOutput->append(0xE000 |  (i >> 12));
+                g_theOutput->append(0x8000 | ((i >> 6)  & 0x3F));
+                g_theOutput->append(0x8000 |  (i        & 0x3F));
             } else {
-                theOutput->append(0xF000 |  (i >> 18));
-                theOutput->append(0x8000 | ((i >> 12) & 0x3F));
-                theOutput->append(0x8000 | ((i >> 6)  & 0x3F));
-                theOutput->append(0x8000 |  (i        & 0x3F));
+                g_theOutput->append(0xF000 |  (i >> 18));
+                g_theOutput->append(0x8000 | ((i >> 12) & 0x3F));
+                g_theOutput->append(0x8000 | ((i >> 6)  & 0x3F));
+                g_theOutput->append(0x8000 |  (i        & 0x3F));
             }
         } else {
             context->error("Bad character code", context->evalArg(n));
@@ -730,52 +730,52 @@ FunctionContext::~FunctionContext() {
 }
 
 // jr 1Sep11 (based on code by Douglas Crockford)
-void FunctionContext::registerTiltonFunctions(SearchList* macroTable) {
-    macroTable->install("add",       tilton_add);
-    macroTable->install("and",       tilton_and);
-    macroTable->install("append",    tilton_append);
-    macroTable->install("define",    tilton_define);
-    macroTable->install("defined?",  tilton_defined_);
-    macroTable->install("delete",    tilton_delete);
-    macroTable->install("div",       tilton_div);
-    macroTable->install("dump",      tilton_dump);
-    macroTable->install("entityify", tilton_entityify);
-    macroTable->install("eq?",       tilton_eq_);
-    macroTable->install("eval",      tilton_eval);
-    macroTable->install("first",     tilton_first);
-    macroTable->install("ge?",       tilton_ge_);
-    macroTable->install("gensym",    tilton_gensym);
-    macroTable->install("get",       tilton_get);
-    macroTable->install("gt?",       tilton_gt_);
-    macroTable->install("include",   tilton_include);
-    macroTable->install("last",      tilton_last);
-    macroTable->install("le?",       tilton_le_);
-    macroTable->install("length",    tilton_length);
-    macroTable->install("literal",   tilton_literal);
-    macroTable->install("loop",      tilton_loop);
-    macroTable->install("lt?",       tilton_lt_);
-    macroTable->install("mod",       tilton_mod);
-    macroTable->install("mult",      tilton_mult);
-    macroTable->install("mute",      tilton_mute);
-    macroTable->install("ne?",       tilton_ne_);
-    macroTable->install("null",      tilton_null);
-    macroTable->install("number?",   tilton_number_);
-    macroTable->install("or",        tilton_or);
-    macroTable->install("print",     tilton_print);
-    macroTable->install("read",      tilton_read);
-    macroTable->install("rep",       tilton_rep);
-    macroTable->install("set",       tilton_set);
-    macroTable->install("slashify",  tilton_slashify);
-    macroTable->install("stop",      tilton_stop);
-    macroTable->install("sub",       tilton_sub);
-    macroTable->install("substr",    tilton_substr);
-    macroTable->install("trim",      tilton_trim);
-    macroTable->install("unicode",   tilton_unicode);
-    macroTable->install("write",     tilton_write);
-    macroTable->install("gt", ">");
-    macroTable->install("lt", "<");
-    macroTable->install("tilde", "~");
-    macroTable->install("tilton", "0");
+void FunctionContext::registerTiltonFunctions(SearchList* g_macroTable) {
+    g_macroTable->install("add",       tilton_add);
+    g_macroTable->install("and",       tilton_and);
+    g_macroTable->install("append",    tilton_append);
+    g_macroTable->install("define",    tilton_define);
+    g_macroTable->install("defined?",  tilton_defined_);
+    g_macroTable->install("delete",    tilton_delete);
+    g_macroTable->install("div",       tilton_div);
+    g_macroTable->install("dump",      tilton_dump);
+    g_macroTable->install("entityify", tilton_entityify);
+    g_macroTable->install("eq?",       tilton_eq_);
+    g_macroTable->install("eval",      tilton_eval);
+    g_macroTable->install("first",     tilton_first);
+    g_macroTable->install("ge?",       tilton_ge_);
+    g_macroTable->install("gensym",    tilton_gensym);
+    g_macroTable->install("get",       tilton_get);
+    g_macroTable->install("gt?",       tilton_gt_);
+    g_macroTable->install("include",   tilton_include);
+    g_macroTable->install("last",      tilton_last);
+    g_macroTable->install("le?",       tilton_le_);
+    g_macroTable->install("length",    tilton_length);
+    g_macroTable->install("literal",   tilton_literal);
+    g_macroTable->install("loop",      tilton_loop);
+    g_macroTable->install("lt?",       tilton_lt_);
+    g_macroTable->install("mod",       tilton_mod);
+    g_macroTable->install("mult",      tilton_mult);
+    g_macroTable->install("mute",      tilton_mute);
+    g_macroTable->install("ne?",       tilton_ne_);
+    g_macroTable->install("null",      tilton_null);
+    g_macroTable->install("number?",   tilton_number_);
+    g_macroTable->install("or",        tilton_or);
+    g_macroTable->install("print",     tilton_print);
+    g_macroTable->install("read",      tilton_read);
+    g_macroTable->install("rep",       tilton_rep);
+    g_macroTable->install("set",       tilton_set);
+    g_macroTable->install("slashify",  tilton_slashify);
+    g_macroTable->install("stop",      tilton_stop);
+    g_macroTable->install("sub",       tilton_sub);
+    g_macroTable->install("substr",    tilton_substr);
+    g_macroTable->install("trim",      tilton_trim);
+    g_macroTable->install("unicode",   tilton_unicode);
+    g_macroTable->install("write",     tilton_write);
+    g_macroTable->install("gt", ">");
+    g_macroTable->install("lt", "<");
+    g_macroTable->install("tilde", "~");
+    g_macroTable->install("tilton", "0");
 }
 
 

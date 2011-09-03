@@ -33,8 +33,8 @@
 // MAXHASH is the largest index in the hash table. It must be (2**n)-1.
 #define MAXHASH 1023
 
-SearchList* macroTable = new SearchList();
-Text* theOutput = NULL;
+SearchList* g_macroTable = new SearchList();
+Text* g_theOutput = NULL;
 
 // main processes the command line arguments and evaluates the standard
 // input.
@@ -48,10 +48,10 @@ int main(int argc, const char * argv[]) {
     int j = 0;  // index of context parameter
     Context* context = new Context(NULL, NULL);
     Text* in = new Text();
-    theOutput = new Text(1024);
+    g_theOutput = new Text(1024);
     FunctionContext* builtins = new FunctionContext;
 
-    builtins->registerTiltonFunctions(macroTable);
+    builtins->registerTiltonFunctions(g_macroTable);
 
 
 // process the command line arguments
@@ -122,7 +122,7 @@ int main(int argc, const char * argv[]) {
 
 // -mute
             case 'm':
-                theOutput->length = 0;
+                g_theOutput->length = 0;
                 break;
 
 // -no (do not process the standard input)
@@ -139,7 +139,7 @@ int main(int argc, const char * argv[]) {
                     if (!string->read(name)) {
                         context->error("Error in -read", name);
                     }
-                    theOutput->append(string);
+                    g_theOutput->append(string);
                     delete name;
                     delete string;
                 } else {
@@ -154,7 +154,7 @@ int main(int argc, const char * argv[]) {
                     i += 1;
                     string = new Text(argv[i]);
                     i += 1;
-                    macroTable->install(name, string);
+                    g_macroTable->install(name, string);
                     delete name;
                     delete string;
                 } else {
@@ -167,10 +167,10 @@ int main(int argc, const char * argv[]) {
                 if (i < argc) {
                     name = new Text(argv[i]);
                     i += 1;
-                    if (!theOutput->write(name)) {
+                    if (!g_theOutput->write(name)) {
                         context->error("Error in -write", name);
                     }
-                    theOutput->length = 0;
+                    g_theOutput->length = 0;
                     delete name;
                 } else {
                     context->error("Missing filename on -write");
@@ -206,6 +206,6 @@ int main(int argc, const char * argv[]) {
 // and finally
 
 
-    theOutput->output();
+    g_theOutput->output();
     return 0;
 }

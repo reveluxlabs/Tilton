@@ -38,8 +38,8 @@
 #include "tilton.h"
 #include "text.h"
 
-extern Text* theOutput;
-extern SearchList* macroTable;
+extern Text* g_theOutput;
+extern SearchList* g_macroTable;
 
 
 Context::Context(Context* prev, Iter* s) {
@@ -138,26 +138,26 @@ void Context::eval(Text* input) {
   for (;;) {
     switch ((c = in->next())) {
     case '<':
-        this->evalAngle(in, depth, theOutput, tildesSeen, newContext);
+        this->evalAngle(in, depth, g_theOutput, tildesSeen, newContext);
         break;
 
     case '~':
-        this->evalTilde(in, depth, theOutput, tildesSeen, newContext);
+        this->evalTilde(in, depth, g_theOutput, tildesSeen, newContext);
         break;
 
     case EOT:
-        this->evalEOT(in, depth, theOutput, tildesSeen, newContext);
+        this->evalEOT(in, depth, g_theOutput, tildesSeen, newContext);
         return;
 
 // literal character
     default:
-        theOutput->addToString(c);
+        g_theOutput->addToString(c);
         break;
     }
   }
 }
 
-void Context::evalAngle(Iter* in, int &depth, Text* theOutput,
+void Context::evalAngle(Iter* in, int &depth, Text* g_theOutput,
                         int &tildesSeen, Context* &newContext) {
   int runLength;     // the number of tildes currently under consideration
 
@@ -167,19 +167,19 @@ void Context::evalAngle(Iter* in, int &depth, Text* theOutput,
     if (runLength) {
         depth += 1;
     }
-    theOutput->addToString('<');
-    theOutput->addToString('~', runLength);
+    g_theOutput->addToString('<');
+    g_theOutput->addToString('~', runLength);
   } else if (runLength) {
     depth = 1;
     tildesSeen = runLength;
     newContext = new Context(this, in);
-    newContext->position = theOutput->length;
+    newContext->position = g_theOutput->length;
   } else {
-    theOutput->addToString('<');
+    g_theOutput->addToString('<');
   }
 }
 
-void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
+void Context::evalTilde(Iter* in, int &depth, Text* g_theOutput,
                         int &tildesSeen, Context* &newContext) {
   int argNo;         // argument number
   int c;             // current character
@@ -191,7 +191,7 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
   runLength = checkForTilde(in, 1);
 
   if (depth == 1 && runLength >= tildesSeen) {
-    newContext->add(theOutput->removeFromString(newContext->position));
+    newContext->add(g_theOutput->removeFromString(newContext->position));
     for (;;) {
       runLength -= tildesSeen;
       if (runLength < tildesSeen) break;
@@ -199,7 +199,7 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
     }
   }
 
-  theOutput->addToString('~', runLength);
+  g_theOutput->addToString('~', runLength);
 
   if (in->peek() == '>') {
       //  ~>
@@ -207,7 +207,7 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
       if (!stackEmpty(depth)) {
           depth -= 1;
           if (!stackEmpty(depth)) {
-              theOutput->addToString('>');
+              g_theOutput->addToString('>');
           } else {
               if (runLength) {
                   newContext->error("Short ~>");
@@ -228,12 +228,12 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
                   }
                   if (argNo >= 0) {
                       if (!n->next) {
-                          theOutput->addToString(this->evalArg(argNo));
+                          g_theOutput->addToString(this->evalArg(argNo));
                       } else {
                           //    <~NUMBER~value~>
                           n = newContext->getNode(argNo);
                           if (!n->hasValue()) {
-                            Context::evalTextForArg(1, newContext, theOutput);
+                            Context::evalTextForArg(1, newContext, g_theOutput);
                           }
                           Context::setMacroVariable(argNo, n->value);
                       }
@@ -251,12 +251,12 @@ void Context::evalTilde(Iter* in, int &depth, Text* theOutput,
 }
 
 void Context::evalTextForArg(int argNo, Context* &newContext,
-                             Text* &theOutput) {
+                             Text* &g_theOutput) {
   Node* n;
 
   n = newContext->getNode(argNo);
   this->eval(n->text);
-  n->value = theOutput->removeFromString(newContext->position);
+  n->value = g_theOutput->removeFromString(newContext->position);
 }
 
 void Context::setMacroVariable(int varNo, Text* t) {
@@ -275,7 +275,7 @@ void Context::evalMacro(Context* &newContext) {
     Text* name;
 
     name = newContext->evalArg(0);
-    macro = macroTable->lookup(name);
+    macro = g_macroTable->lookup(name);
     if (macro) {
         if (macro->function) {
             macro->function(newContext);
@@ -290,7 +290,7 @@ void Context::evalMacro(Context* &newContext) {
     newContext = NULL;
 }
 
-void Context::evalEOT(Iter* in, int &depth, Text* theOutput,
+void Context::evalEOT(Iter* in, int &depth, Text* g_theOutput,
                       int &tildesSeen, Context* &newContext) {
     if (depth) {
         newContext->error("Missing ~>");
@@ -316,9 +316,9 @@ Text* Context::evalArg(Node* n) {
             return NULL;
         }
         Text* arg = n->text;
-        int position = theOutput->length;
+        int position = g_theOutput->length;
         this->previous->eval(arg);
-        n->value = theOutput->removeFromString(position);
+        n->value = g_theOutput->removeFromString(position);
     }
     return n->value;
 }
