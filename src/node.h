@@ -32,13 +32,13 @@ class Node {
 
     void    dump();
 
-    Text*   text;
-    Text*   value;
-    Node*   next;
+    Text*   text_;
+    Text*   value_;
+    Node*   next_;
 
 
     bool hasValue() {
-      return this->value != 0;
+      return this->value_ != 0;
     }
 };
 

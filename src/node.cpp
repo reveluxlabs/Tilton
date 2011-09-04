@@ -28,23 +28,23 @@
 #include <stdio.h>
 
 Node::Node(Text* t) {
-    text = t;
-    value = NULL;
-    next = NULL;
+    text_ = t;
+    value_ = NULL;
+    next_ = NULL;
 }
 
 Node::~Node(void) {
-    delete this->text;
-    delete this->value;
-    delete this->next;
+    delete this->text_;
+    delete this->value_;
+    delete this->next_;
 }
 
 void Node::dump() {
-    if (text) {
-        fwrite(text->string, sizeof(char), text->length, stderr);
+    if (text_) {
+        fwrite(text_->string_, sizeof(char), text_->length_, stderr);
     }
-    if (next) {
+    if (next_) {
         fputc('~', stderr);
-        next->dump();
+        next_->dump();
     }
 }

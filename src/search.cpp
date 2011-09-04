@@ -31,26 +31,26 @@ SearchList::SearchList() {
     int i;
 
     for (i = MAXHASH; i >= 0; i -= 1) {
-        theMacroList[i] = NULL;
+        the_macro_list_[i] = NULL;
     }
 }
 
 SearchList::~SearchList() {
 }
 
-Text* SearchList::getList(uint32 h) {
-    return theMacroList[h];
+Text* SearchList::the_macro_list(uint32 h) {
+    return the_macro_list_[h];
 }
 
-void SearchList::setList(uint32 h, Text* t) {
-    theMacroList[h] = t;
+void SearchList::set_the_macro_list(uint32 h, Text* t) {
+    the_macro_list_[h] = t;
 }
 
 void SearchList::link(Text* name, Text* t) {
     uint32 h = name->hash() & MAXHASH;
     t->setName(name);
-    t->link = SearchList::getList(h);
-    SearchList::setList(h, t);
+    t->link_ = SearchList::the_macro_list(h);
+    SearchList::set_the_macro_list(h, t);
 }
 
 //  addFunction is used by main to add primitive functions to tilton.
@@ -60,7 +60,7 @@ void SearchList::install(const char* namestring, void (*function)(Context * )) {
     Text* t = new Text();
     Text* name = new Text(namestring);
     SearchList::link(name, t);
-    t->function = function;
+    t->function_ = function;
     delete name;
 }
 
@@ -77,12 +77,12 @@ void SearchList::install(const char* namestring, const char* string) {
 //  The list is a hash table with links for collisions.
 
 Text* SearchList::lookup(Text* name) {
-    Text* t = SearchList::getList(name->hash() & MAXHASH);
+    Text* t = SearchList::the_macro_list(name->hash() & MAXHASH);
     while (t) {
         if (t->isName(name)) {
             break;
         }
-        t = t->link;
+        t = t->link_;
     }
     return t;
 }
@@ -104,7 +104,7 @@ void SearchList::install(Text* name, Text* value) {
 void SearchList::dump() {
     int i;
     for (i = 0; i < (MAXHASH + 1); i += 1) {
-        Text* macro = SearchList::getList(i);
+        Text* macro = SearchList::the_macro_list(i);
         if (macro) {
             macro->dump();
         }
@@ -117,8 +117,8 @@ Text* SearchList::getDef(Text* name) {
         t = new Text(0);
         uint32 h = name->hash() & MAXHASH;
         t->setName(name);
-        t->link = SearchList::getList(h);
-        SearchList::setList(h, t);
+        t->link_ = SearchList::the_macro_list(h);
+        SearchList::set_the_macro_list(h, t);
     }
     return t;
 }

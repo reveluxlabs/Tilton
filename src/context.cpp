@@ -38,55 +38,55 @@
 #include "tilton.h"
 #include "text.h"
 
-extern Text* g_theOutput;
-extern SearchList* g_macroTable;
+extern Text* g_the_output;
+extern SearchList* g_macro_table;
 
 
 Context::Context(Context* prev, Iter* s) {
-    position = 0;
-    first = NULL;
-    last = NULL;
-    previous = prev;
-    source = s;
+    position_ = 0;
+    first_ = NULL;
+    last_ = NULL;
+    previous_ = prev;
+    source_ = s;
     if (s) {
-        line = s->line;
-        character = s->character;
-        index = s->index;
+        line_ = s->line;
+        character_ = s->character;
+        index_ = s->index;
     } else {
-        line = 0;
-        character = 0;
-        index = 0;
+        line_ = 0;
+        character_ = 0;
+        index_ = 0;
     }
 }
 
 
 Context::~Context() {
-    delete this->first;
+    delete this->first_;
 }
 
 
 // add a c-string to a context
 
-void Context::add(const char* s) {
-    add(new Text(s));
+void Context::AddArgument(const char* s) {
+    AddArgument(new Text(s));
 }
 
 //  add an argument to a context
 
-void Context::add(Text* t) {
+void Context::AddArgument(Text* t) {
     Node* p = new Node(t);
-    if (last) {
-        last->next = p;
+    if (last_) {
+        last_->next_ = p;
     } else {
-        first = p;
+        first_ = p;
     }
-    last = p;
+    last_ = p;
 }
 
 
 void Context::dump() {
-    if (first) {
-        first->dump();
+    if (first_) {
+        first_->dump();
     }
     fputc('\n', stderr);
 }
@@ -94,271 +94,250 @@ void Context::dump() {
 
 // Write a message to stderr and then exit.
 
-void Context::error(const char* reason) {
-    error(reason, NULL);
+void Context::ReportErrorAndDie(const char* reason) {
+    ReportErrorAndDie(reason, NULL);
 }
 
 
-void Context::error(const char* reason, Text* evidence) {
+void Context::ReportErrorAndDie(const char* reason, Text* evidence) {
     Text* report = new Text(80);
-    whereError(report);
+    FindError(report);
     report->append(reason);
     if (evidence) {
         report->append(": ");
         report->append(evidence);
     }
     report->append(".\n");
-    fwrite(report->string, sizeof(char), report->length, stdout);
-    fwrite(report->string, sizeof(char), report->length, stderr);
+    fwrite(report->string_, sizeof(char), report->length_, stdout);
+    fwrite(report->string_, sizeof(char), report->length_, stderr);
     exit(1);
 }
 
-
-//  eval is the heart of Tilton. It is called on a context which is the
-//  container of the source of <~NUMBER~> parameters. It scans its input text
-//  for <~ ~> patterns which it builds into new contexts and recursively
-//  evaluates. Characters outside of the <~ ~> are treated as literal.
-//  Within <~ ~>, substrings are produced, separated by ~ . These are stored
-//  in the new context as argument strings. Any nested <~ ~> sequences within
-//  the arguments are treated for now as literal (lazy evaluation). The [0]
-//  argument is the name of the macro to be invoked.
-
-//  Tilton is so simple that parsing and evaluation take place at the same
-//  time.
-
+// Eval is the heart of Tilton, see comment in context.h
+// It is currently being refactored towards the command pattern.
 void Context::eval(Text* input) {
   int c;                 // current character
   int depth = 0;         // depth of nested <~ ~>
-  int tildesSeen= 0;     // the number of tildes in the separator ~~~
-  Context* newContext = NULL;
+  int tildes_seen= 0;     // the number of tildes in the separator ~~~
+  Context* new_context = NULL;
   Iter* in = new Iter(input);
 
-// Loop over the characters in the input
+  // Loop over the characters in the input
 
   for (;;) {
     switch ((c = in->next())) {
-    case '<':
-        this->evalAngle(in, depth, g_theOutput, tildesSeen, newContext);
+      case '<':
+        this->EvaluateLeftAngle(in, depth, g_the_output,
+                                tildes_seen, new_context);
         break;
-
-    case '~':
-        this->evalTilde(in, depth, g_theOutput, tildesSeen, newContext);
+      case '~':
+        this->EvaluateTilde(in, depth, g_the_output, tildes_seen, new_context);
         break;
-
-    case EOT:
-        this->evalEOT(in, depth, g_theOutput, tildesSeen, newContext);
+      case EOT:
+        this->EvaluateEOT(in, depth, g_the_output, tildes_seen, new_context);
         return;
-
-// literal character
-    default:
-        g_theOutput->addToString(c);
+      // literal character
+      default:
+        g_the_output->addToString(c);
         break;
     }
   }
 }
 
-void Context::evalAngle(Iter* in, int &depth, Text* g_theOutput,
-                        int &tildesSeen, Context* &newContext) {
-  int runLength;     // the number of tildes currently under consideration
+void Context::EvaluateLeftAngle(Iter* in, int &depth, Text* g_the_output,
+                        int &tildes_seen, Context* &new_context) {
+  int run_length;  // the number of tildes currently under consideration
 
-  runLength = checkForTilde(in, 0);
+  run_length = checkForTilde(in, 0);
 
-  if (!stackEmpty(depth)) {
-    if (runLength) {
+  if (!stackEmpty(depth)) {       // in middle of macro expansion
+    if (haveTildes(run_length)) {  // found embedded macro bracket
         depth += 1;
     }
-    g_theOutput->addToString('<');
-    g_theOutput->addToString('~', runLength);
-  } else if (runLength) {
+    g_the_output->addToString('<');
+    g_the_output->addToString('~', run_length);
+  } else if (haveTildes(run_length)) {  // found first macro bracket
     depth = 1;
-    tildesSeen = runLength;
-    newContext = new Context(this, in);
-    newContext->position = g_theOutput->length;
-  } else {
-    g_theOutput->addToString('<');
+    tildes_seen = run_length;
+    new_context = new Context(this, in);
+    new_context->position_ = g_the_output->length_;
+  } else {  // left angle in the middle of text being passed through
+    g_the_output->addToString('<');
   }
 }
 
-void Context::evalTilde(Iter* in, int &depth, Text* g_theOutput,
-                        int &tildesSeen, Context* &newContext) {
-  int argNo;         // argument number
-  int c;             // current character
-  int i;             // loop counter
-  Node* n;           // current node
-  Text* s;           // current text
-  int runLength;     // the number of tildes currently under consideration
+void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
+                        int &tildes_seen, Context* &new_context) {
+  int arg_number;    // argument number
+  Node* arg;         // current arg
+  Text* arg_text;    // current text
+  int run_length;    // the number of tildes currently under consideration
 
-  runLength = checkForTilde(in, 1);
+  run_length = checkForTilde(in, 1);
 
-  if (depth == 1 && runLength >= tildesSeen) {
-    newContext->add(g_theOutput->removeFromString(newContext->position));
+  // if in middle of expansion and tildes seen, create args for each
+  if (depth == 1 && run_length >= tildes_seen) {
+    new_context->AddArgument(
+        g_the_output->removeFromString(new_context->position_));
     for (;;) {
-      runLength -= tildesSeen;
-      if (runLength < tildesSeen) break;
-      newContext->add(new Text());
+      run_length -= tildes_seen;
+      if (run_length < tildes_seen) {
+        break;
+      }
+      new_context->AddArgument(new Text());
     }
   }
 
-  g_theOutput->addToString('~', runLength);
+  // pass through tildes in plain text
+  g_the_output->addToString('~', run_length);
 
+  // if we have seen the closing bracket
   if (in->peek() == '>') {
-      //  ~>
-      in->next();
+    //  ~>
+    in->next();
+    if (!stackEmpty(depth)) {
+      depth -= 1;
       if (!stackEmpty(depth)) {
-          depth -= 1;
-          if (!stackEmpty(depth)) {
-              g_theOutput->addToString('>');
-          } else {
-              if (runLength) {
-                  newContext->error("Short ~>");
-              }
-              //    apply:
-              n = newContext->first;
-              //    <~NUMBER~>
-              s = n->text;
-              argNo = s->getChar(0) - '0';
-              if (isDigit(argNo)) {
-                  for (i = 1; i < s->length; i += 1) {
-                      c = s->getChar(0) - '0';
-                      if (c < 0 || c > 9) {
-                          argNo = -1;
-                          break;
-                      }
-                      argNo = argNo * 10 + c;
-                  }
-                  if (argNo >= 0) {
-                      if (!n->next) {
-                          g_theOutput->addToString(this->evalArg(argNo));
-                      } else {
-                          //    <~NUMBER~value~>
-                          n = newContext->getNode(argNo);
-                          if (!n->hasValue()) {
-                            Context::evalTextForArg(1, newContext, g_theOutput);
-                          }
-                          Context::setMacroVariable(argNo, n->value);
-                      }
-                      delete newContext;
-                      return;
-                  }
-              }
-              //    look up
-              Context::evalMacro(newContext);
-          }
+          g_the_output->addToString('>');
       } else {
-          (new Context(this, in))->error("Extra ~>");
+        if (run_length) {
+          new_context->ReportErrorAndDie("Short ~>");
+        }
+        //    apply:
+        arg = new_context->first_;
+        //    <~NUMBER~>
+        arg_text = arg->text_;
+        arg_number = arg_text->getChar(0) - '0';
+        if (Text::isDigit(arg_number)) {
+          arg_number = arg_text->ConvertAlphaToInteger();
+          if (arg_number >= 0) {
+            if (!arg->next_) {
+              g_the_output->addToString(this->evalArg(arg_number));
+            } else {
+              //    <~NUMBER~value~>
+              arg = new_context->GetArgument(arg_number);
+              if (!arg->hasValue()) {
+                arg = Context::evalTextForArg(1, new_context, g_the_output);
+              }
+              Context::SetMacroVariable(arg_number, arg->value_);
+            }
+            delete new_context;
+            return;
+          }
+        }
+        //    look up
+        Context::ExpandMacro(new_context);
       }
+    } else {
+      (new Context(this, in))->ReportErrorAndDie("Extra ~>");
+    }
   }
 }
 
-void Context::evalTextForArg(int argNo, Context* &newContext,
-                             Text* &g_theOutput) {
+Node* Context::evalTextForArg(int arg_number, Context* &new_context,
+                             Text* &g_the_output) {
   Node* n;
-
-  n = newContext->getNode(argNo);
-  this->eval(n->text);
-  n->value = g_theOutput->removeFromString(newContext->position);
+  n = new_context->GetArgument(arg_number);
+  this->eval(n->text_);
+  n->value_ = g_the_output->removeFromString(new_context->position_);
+  return n;
 }
 
-void Context::setMacroVariable(int varNo, Text* t) {
+void Context::SetMacroVariable(int varNo, Text* t) {
   Node* o;
-
-  o = this->getNode(varNo);
-  delete o->text;
-  o->text = NULL;
-  delete o->value;
+  o = this->GetArgument(varNo);
+  delete o->text_;
+  o->text_ = NULL;
+  delete o->value_;
   // o->value[varNo] = new Text(t);
-  o->value = new Text(t);
+  o->value_ = new Text(t);
 }
 
-void Context::evalMacro(Context* &newContext) {
+void Context::ExpandMacro(Context* &new_context) {
     Text* macro;
     Text* name;
 
-    name = newContext->evalArg(0);
-    macro = g_macroTable->lookup(name);
+    name = new_context->evalArg(0);
+    macro = g_macro_table->lookup(name);
     if (macro) {
-        if (macro->function) {
-            macro->function(newContext);
+        if (macro->function_) {
+            macro->function_(new_context);
         } else {
-            newContext->eval(macro);
+            new_context->eval(macro);
         }
     } else {
         //    undefined
-        newContext->error("Undefined macro");
+        new_context->ReportErrorAndDie("Undefined macro");
     }
-    delete newContext;
-    newContext = NULL;
+    delete new_context;
+    new_context = NULL;
 }
 
-void Context::evalEOT(Iter* in, int &depth, Text* g_theOutput,
-                      int &tildesSeen, Context* &newContext) {
-    if (depth) {
-        newContext->error("Missing ~>");
+void Context::EvaluateEOT(Iter* in, int &depth, Text* g_the_output,
+                      int &tildes_seen, Context* &new_context) {
+    if (!stackEmpty(depth)) {
+        new_context->ReportErrorAndDie("Missing ~>");
     }
     delete in;
 }
 
-//  evalArg - Get an argument of a macro. If we have already determined its
-//  value, then simply return it. Otherwise, evaluate the argument to obtain
-//  its value (memoization).
-
 Text* Context::evalArg(int argNr) {
-    return evalArg(getNode(argNr));
+    return evalArg(GetArgument(argNr));
 }
 
 
 Text* Context::evalArg(Node* n) {
-    if (n == NULL) {
-        return NULL;
+  if (n == NULL) {
+      return NULL;
+  }
+  if (n->value_ == NULL) {
+    if (n->text_ == NULL) {
+      return NULL;
     }
-    if (n->value == NULL) {
-        if (n->text == NULL) {
-            return NULL;
-        }
-        Text* arg = n->text;
-        int position = g_theOutput->length;
-        this->previous->eval(arg);
-        n->value = g_theOutput->removeFromString(position);
-    }
-    return n->value;
+    Text* arg = n->text_;
+    int position_ = g_the_output->length_;
+    this->previous_->eval(arg);
+    n->value_ = g_the_output->removeFromString(position_);
+  }
+  return n->value_;
 }
 
 
 number Context::evalNumber(int argNr) {
-    return evalNumber(getNode(argNr));
+  return evalNumber(GetArgument(argNr));
 }
 
 
 number Context::evalNumber(Node* n) {
-    if (!n) {
-        return 0;
-    }
-    number num = evalArg(n)->getNumber();
-    if (num == NAN) {
-        error("Not a number", evalArg(n));
-    }
-    return num;
+  if (!n) {
+    return 0;
+  }
+  number num = evalArg(n)->getNumber();
+  if (num == NAN) {
+    ReportErrorAndDie("Not a number", evalArg(n));
+  }
+  return num;
 }
 
 
-Node* Context::getNode(int argNr) {
-    Node* p;
-    if (!first) {
-        first = last = new Node(NULL);
+Node* Context::GetArgument(int argNr) {
+  Node* p;
+  if (!first_) {
+    first_ = last_ = new Node(NULL);
+  }
+  p = first_;
+  for (;;) {
+    if (!argNr) {
+      return p;
     }
-    p = first;
-    for (;;) {
-        if (!argNr) {
-            return p;
-        }
-        p = p->next;
-        if (!p) {
-            p = new Node(NULL);
-            last->next = p;  // fixed <~1~> bug -- joh 8/17/11
-            last = p;
-        }
-        argNr -= 1;
+    p = p->next_;
+    if (!p) {
+      p = new Node(NULL);
+      last_->next_ = p;  // fixed <~1~> bug -- jr 17Aug11
+      last_ = p;
     }
+    argNr -= 1;
+  }
 }
 
 
@@ -366,36 +345,31 @@ void Context::nop() {
 }
 
 
-//  resetArg - Delete the value of an argument of a macro. This allows for
-//  evaluating an arg more than once. This is used by <~loop~>
-
 void Context::resetArg(int argNr) {
-    Node* n;
-    n = this->getNode(argNr);
-    delete n->value;
-    n->value = NULL;
+  Node* n;
+  n = this->GetArgument(argNr);
+  delete n->value_;
+  n->value_ = NULL;
 }
 
 
-// Recurse through the context chain to identify the point of the error.
-
-void Context::whereError(Text* report) {
-    if (previous) {
-        previous->whereError(report);
-    }
-    if (source) {
-        report->append(source->text->name, source->text->nameLength);
-        report->append('(');
-        report->appendNumber(line + 1);
-        report->append(',');
-        report->appendNumber(character + 1);
-        report->append('/');
-        report->appendNumber(index + 1);
-        report->append(") ");
-    }
-    if (first->text && first->text->length) {
-        report->append("<~");
-        report->append(first->text);
-        report->append("~> ");
-    }
+void Context::FindError(Text* report) {
+  if (previous_) {
+    previous_->FindError(report);
+  }
+  if (source_) {
+    report->append(source_->text->name_, source_->text->name_length_);
+    report->append('(');
+    report->appendNumber(line_ + 1);
+    report->append(',');
+    report->appendNumber(character_ + 1);
+    report->append('/');
+    report->appendNumber(index_ + 1);
+    report->append(") ");
+  }
+  if (first_ && first_->text_ && first_->text_->length_) {  // added first_ jr 4Sep11
+    report->append("<~");
+    report->append(first_->text_);
+    report->append("~> ");
+  }
 }

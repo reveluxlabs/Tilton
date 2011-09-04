@@ -3,14 +3,6 @@ require 'test/test_helper'
 
 describe "A command line macro processor (in general)" do
 
-  it "should pass through plain text unchanged" do
-    # setup fixture
-    # execute SUT
-    result = %x[ echo "Now is the time for all good me to come to the aide of their country." | ./tilton ]
-    # verify results
-    result.should.include "Now is the time for all good me to come to the aide of their country."
-  end
-
   it "should null args in the input that are not provided" do
     # setup fixture
     # execute SUT
@@ -58,6 +50,22 @@ describe "A command line macro processor (in general)" do
     # setup fixture
     # execute SUT
     result = %x[ echo "<~1~3~><~1~>" | ./tilton charlie ]
+    # verify results
+    result.should.include "3"
+  end
+
+  it "should set the ten digit macro with no prior arg" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~10~3~><~10~>" | ./tilton ]
+    # verify results
+    result.should.include "3"
+  end
+
+  it "should set the ten digit macro with an arg" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~10~3~><~10~>" | ./tilton -10 charlie ]
     # verify results
     result.should.include "3"
   end

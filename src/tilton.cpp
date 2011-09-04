@@ -33,8 +33,8 @@
 // MAXHASH is the largest index in the hash table. It must be (2**n)-1.
 #define MAXHASH 1023
 
-SearchList* g_macroTable = new SearchList();
-Text* g_theOutput = NULL;
+SearchList* g_macro_table = new SearchList();
+Text* g_the_output = NULL;
 
 // main processes the command line arguments and evaluates the standard
 // input.
@@ -48,10 +48,10 @@ int main(int argc, const char * argv[]) {
     int j = 0;  // index of context parameter
     Context* context = new Context(NULL, NULL);
     Text* in = new Text();
-    g_theOutput = new Text(1024);
+    g_the_output = new Text(1024);
     FunctionContext* builtins = new FunctionContext;
 
-    builtins->registerTiltonFunctions(g_macroTable);
+    builtins->RegisterTiltonFunctions(g_macro_table);
 
 
 // process the command line arguments
@@ -75,7 +75,7 @@ int main(int argc, const char * argv[]) {
                     context->eval(string);
                     delete string;
                 } else {
-                    context->error("Missing expression on -eval");
+                    context->ReportErrorAndDie("Missing expression on -eval");
                 }
                 break;
 
@@ -110,19 +110,19 @@ int main(int argc, const char * argv[]) {
                     i += 1;
                     string = new Text();
                     if (!string->read(name)) {
-                        context->error("Error in -include", name);
+                        context->ReportErrorAndDie("Error in -include", name);
                     }
                     context->eval(string);
                     delete name;
                     delete string;
                 } else {
-                    context->error("Missing filename on -include");
+                    context->ReportErrorAndDie("Missing filename on -include");
                 }
                 break;
 
 // -mute
             case 'm':
-                g_theOutput->length = 0;
+                g_the_output->length_ = 0;
                 break;
 
 // -no (do not process the standard input)
@@ -137,13 +137,13 @@ int main(int argc, const char * argv[]) {
                     i += 1;
                     string = new Text();
                     if (!string->read(name)) {
-                        context->error("Error in -read", name);
+                        context->ReportErrorAndDie("Error in -read", name);
                     }
-                    g_theOutput->append(string);
+                    g_the_output->append(string);
                     delete name;
                     delete string;
                 } else {
-                    context->error("Missing filename on -read");
+                    context->ReportErrorAndDie("Missing filename on -read");
                 }
                 break;
 
@@ -154,11 +154,11 @@ int main(int argc, const char * argv[]) {
                     i += 1;
                     string = new Text(argv[i]);
                     i += 1;
-                    g_macroTable->install(name, string);
+                    g_macro_table->install(name, string);
                     delete name;
                     delete string;
                 } else {
-                    context->error("Missing parameter on -set ");
+                    context->ReportErrorAndDie("Missing parameter on -set ");
                 }
                 break;
 
@@ -167,13 +167,13 @@ int main(int argc, const char * argv[]) {
                 if (i < argc) {
                     name = new Text(argv[i]);
                     i += 1;
-                    if (!g_theOutput->write(name)) {
-                        context->error("Error in -write", name);
+                    if (!g_the_output->write(name)) {
+                        context->ReportErrorAndDie("Error in -write", name);
                     }
-                    g_theOutput->length = 0;
+                    g_the_output->length_ = 0;
                     delete name;
                 } else {
-                    context->error("Missing filename on -write");
+                    context->ReportErrorAndDie("Missing filename on -write");
                 }
                 break;
 
@@ -184,13 +184,13 @@ int main(int argc, const char * argv[]) {
                     j = k;
                 } else {
 // none of the above
-                    context->error("Unrecognized command line parameter",
+                    context->ReportErrorAndDie("Unrecognized command line parameter",
                                    new Text(arg));
                 }
             }
         } else {
 // parameter text
-            context->getNode(j)->value = new Text(arg);
+            context->GetArgument(j)->value_ = new Text(arg);
             j += 1;
         }
     }
@@ -206,6 +206,6 @@ int main(int argc, const char * argv[]) {
 // and finally
 
 
-    g_theOutput->output();
+    g_the_output->output();
     return 0;
 }

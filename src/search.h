@@ -29,23 +29,23 @@
 
 class SearchList {
  public:
-    SearchList();
-    virtual ~SearchList();
+   SearchList();
+   virtual ~SearchList();
 
-    Text* lookup(Text* name);
-    void  install(const char* namestring, void (*function)(Context * ));
-    void  install(Text* name, Text* value);
-    void  install(const char* namestring, const char* string);
-    void  dump();
-    Text* getDef(Text* name);
+   Text* lookup(Text* name);
+   void  install(const char* namestring, void (*function)(Context * ));
+   void  install(Text* name, Text* value);
+   void  install(const char* namestring, const char* string);
+   void  dump();
+   Text* getDef(Text* name);
 
 
  private:
-    Text* theMacroList[MAXHASH + 1];
+   Text* the_macro_list_[MAXHASH + 1];
 
-    Text* getList(uint32 h);
-    void  setList(uint32 h, Text* t);
-    void  link(Text* name, Text* t);
+   Text* the_macro_list(uint32 h);
+   void  set_the_macro_list(uint32 h, Text* t);
+   void  link(Text* name, Text* t);
 };
 
 #endif  // SRC_SEARCH_H_

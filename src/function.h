@@ -36,7 +36,7 @@ class FunctionContext {
 
   // registerTiltonFunctions
   // Register the built-in functions for use in Tilton
-  void registerTiltonFunctions(SearchList* g_macroTable);
+  void RegisterTiltonFunctions(SearchList* g_macro_table);
 
  private:
 };

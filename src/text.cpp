@@ -69,7 +69,7 @@ Text::Text(const char* s, int len) {
 
 Text::Text(Text* t) {
     if (t) {
-        init(t->string, t->length);
+        init(t->string_, t->length_);
     } else {
         init(NULL, 0);
     }
@@ -79,8 +79,8 @@ Text::Text(Text* t) {
 // deconstructor
 
 Text::~Text() {
-    delete this->string;
-    delete this->name;
+    delete this->string_;
+    delete this->name_;
 }
 
 
@@ -88,9 +88,9 @@ Text::~Text() {
 
 void Text::append(int c) {
     checkMaxLength(1);
-    string[length] = static_cast<char>(c);
-    length += 1;
-    myHash = 0;
+    string_[length_] = static_cast<char>(c);
+    length_ += 1;
+    my_hash_ = 0;
 }
 
 
@@ -99,11 +99,11 @@ void Text::append(int c) {
 void Text::append(int c, int n) {
     checkMaxLength(n);
     while (n > 0) {
-        string[length] = static_cast<char>(c);
-        length += 1;
+        string_[length_] = static_cast<char>(c);
+        length_ += 1;
         n -= 1;
     }
-    myHash = 0;
+    my_hash_ = 0;
 }
 
 
@@ -121,9 +121,9 @@ void Text::append(const char* s) {
 void Text::append(const char* s, int len) {
     if (s && len) {
         checkMaxLength(len);
-        memmove(&string[length], s, len);
-        length += len;
-        myHash = 0;
+        memmove(&string_[length_], s, len);
+        length_ += len;
+        my_hash_ = 0;
     }
 }
 
@@ -132,7 +132,7 @@ void Text::append(const char* s, int len) {
 
 void Text::append(Text* t) {
     if (t) {
-        append(t->string, t->length);
+        append(t->string_, t->length_);
     }
 }
 
@@ -151,7 +151,7 @@ void Text::appendNumber(number n) {
             appendNumber(d);
         }
         append(static_cast<int>((n % 10) + '0'));
-        myHash = 0;
+        my_hash_ = 0;
     }
 }
 
@@ -162,17 +162,17 @@ void Text::appendNumber(number n) {
 
 void Text::checkMaxLength(int len) {
     int newMaxLength;
-    int req = length + len;
-    if (maxLength < req) {
-        newMaxLength = maxLength * 2;
+    int req = length_ + len;
+    if (max_length_ < req) {
+        newMaxLength = max_length_ * 2;
         if (newMaxLength < req) {
             newMaxLength = req;
         }
         char* newString = new char[newMaxLength];
-        memmove(newString, string, maxLength);
-        delete string;
-        string = newString;
-        maxLength = newMaxLength;
+        memmove(newString, string_, max_length_);
+        delete string_;
+        string_ = newString;
+        max_length_ = newMaxLength;
     }
 }
 
@@ -180,13 +180,13 @@ void Text::checkMaxLength(int len) {
 void Text::dump() {
     Text* t = this;
     while (t) {
-        fwrite(t->name, sizeof(char), t->nameLength, stderr);
-        if (t->length) {
+        fwrite(t->name_, sizeof(char), t->name_length_, stderr);
+        if (t->length_) {
             fputc('~', stderr);
-            fwrite(t->string, sizeof(char), t->length, stderr);
+            fwrite(t->string_, sizeof(char), t->length_, stderr);
         }
         fprintf(stderr, "\n");
-        t = t->link;
+        t = t->link_;
     }
 }
 
@@ -194,8 +194,8 @@ void Text::dump() {
 // get character
 
 int Text::getChar(int index) {
-    if (index >= 0 && index < length) {
-        return string[index];
+    if (index >= 0 && index < length_) {
+        return string_[index];
     } else {
         return EOT;
     }
@@ -211,14 +211,14 @@ number Text::getNumber() {
     bool ok = false;
     number value = 0;
 
-    if (length == 0) {
+    if (length_ == 0) {
         return NAN;  // joh 31Aug11
     }
 
     for (;;) {
-        c = string[i];
+        c = string_[i];
         i += 1;
-        if (i > length) {
+        if (i > length_) {
             return NAN;
         }
         if (c > ' ') {
@@ -227,9 +227,9 @@ number Text::getNumber() {
     }
     if (c == '-') {
         sign = true;
-        c = string[i];
+        c = string_[i];
         i += 1;
-        if (i > length) {
+        if (i > length_) {
             return NAN;
         }
     }
@@ -246,17 +246,17 @@ number Text::getNumber() {
                 if (c > ' ') {
                     return NAN;
                 }
-                if (i >= length) {
+                if (i >= length_) {
                     break;
                 }
-                c = string[i];
+                c = string_[i];
                 i += 1;
             }
         }
-        if (i >= length) {
+        if (i >= length_) {
             break;
         }
-        c = string[i];
+        c = string_[i];
         i += 1;
     }
     if (ok) {
@@ -274,17 +274,17 @@ number Text::getNumber() {
 // find the first occurance of a substring
 
 int Text::indexOf(Text *t) {
-    int len = t->length;
-    char* s = t->string;
+    int len = t->length_;
+    char* s = t->string_;
     if (len) {
         bool b;
-        int d = length - len;
+        int d = length_ - len;
         int i;
         int r;
         for (r = 0; r <= d; r += 1) {
             b = true;
             for (i = 0; i < len; i += 1) {
-                if (string[r + i] != s[i]) {
+                if (string_[r + i] != s[i]) {
                     b = false;
                     break;
                 }
@@ -299,19 +299,19 @@ int Text::indexOf(Text *t) {
 
 
 void Text::init(const char* s, int len) {
-    name = NULL;
-    link = NULL;
-    function = NULL;
-    length = nameLength = 0;
-    myHash = 0;
-    maxLength = len;
+    name_ = NULL;
+    link_ = NULL;
+    function_ = NULL;
+    length_ = name_length_ = 0;
+    my_hash_ = 0;
+    max_length_ = len;
     if (len == 0) {
-        string = NULL;
+        string_ = NULL;
     } else {
-        string = new char[len];
+        string_ = new char[len];
         if (s) {
-            memmove(string, s, len);
-            length = len;
+            memmove(string_, s, len);
+            length_ = len;
         }
     }
 }
@@ -322,8 +322,8 @@ void Text::init(const char* s, int len) {
 void Text::input() {
     char buffer[10240];
     int len;
-    length = 0;
-    myHash = static_cast<int>(0);
+    length_ = 0;
+    my_hash_ = static_cast<int>(0);
     for (;;) {
         len = static_cast<int>(fread(buffer, sizeof(char),
                                sizeof(buffer), stdin));
@@ -339,12 +339,12 @@ void Text::input() {
 
 bool Text::is(const char* s) {
     int i;
-    for (i = 0; i < length; i += 1) {
-        if (string[i] != s[i]) {
+    for (i = 0; i < length_; i += 1) {
+        if (string_[i] != s[i]) {
             return false;
         }
     }
-    return (s[length] == 0);
+    return (s[length_] == 0);
 }
 
 
@@ -352,11 +352,11 @@ bool Text::is(const char* s) {
 
 bool Text::is(Text* t) {
     int i;
-    if (length != t->length) {
+    if (length_ != t->length_) {
         return false;
     }
-    for (i = 0; i < length; i += 1) {
-        if (string[i] != t->string[i]) {
+    for (i = 0; i < length_; i += 1) {
+        if (string_[i] != t->string_[i]) {
             return false;
         }
     }
@@ -367,11 +367,11 @@ bool Text::is(Text* t) {
 // is name text
 
 bool Text::isName(Text* t) {
-    if (nameLength != t->length) {
+    if (name_length_ != t->length_) {
         return false;
     }
-    for (int i = 0; i < nameLength; i += 1) {
-        if (name[i] != t->string[i]) {
+    for (int i = 0; i < name_length_; i += 1) {
+        if (name_[i] != t->string_[i]) {
             return false;
         }
     }
@@ -382,15 +382,15 @@ bool Text::isName(Text* t) {
 // find the last occurance of a substring
 
 int Text::lastIndexOf(Text *t) {
-    int len = t->length;
-    char* s = t->string;
+    int len = t->length_;
+    char* s = t->string_;
     if (len) {
         bool b;
-        int d = length - len;
+        int d = length_ - len;
         for (int r = d; r >= 0; r -= 1) {
             b = true;
             for (int i = 0; i < len; i += 1) {
-                if (string[r + i] != s[i]) {
+                if (string_[r + i] != s[i]) {
                     b = false;
                     break;
                 }
@@ -418,81 +418,81 @@ bool Text::lt(Text* t) {
 bool Text::ltNum(Text* t) {
     int first, second;
 
-    first = atoi(this->string);
-    second = atoi(t->string);
+    first = atoi(this->string_);
+    second = atoi(t->string_);
     return first < second;
 }
 
 bool Text::ltStr(Text* t) {
     // original lt
-    int len = t->length;
-    if (len > length) {
-        len = length;
+    int len = t->length_;
+    if (len > length_) {
+        len = length_;
     }
     for (int i = 0; i < len; i += 1) {
-        if (string[i] != t->string[i]) {
-            return (string[i] < t->string[i]);
+        if (string_[i] != t->string_[i]) {
+            return (string_[i] < t->string_[i]);
         }
     }
-    return len != t->length;
+    return len != t->length_;
 }
 
 
 // write to standard output
 
 void Text::output() {
-    fwrite(string, sizeof(char), length, stdout);
+    fwrite(string_, sizeof(char), length_, stdout);
 }
 
 
 //  read filename -- read the file in 10K chunks.
 
 bool Text::read(Text* filename) {
-    FILE *fp;
-    char buffer[10240];
-    int len;
+  FILE *fp;
+  char buffer[10240];
+  int len;
 
-    delete name;
-    nameLength = filename->length;
-    name = new char[nameLength];
-    memmove(name, filename->string, nameLength);
-    memmove(buffer, name, nameLength);
-    buffer[filename->length] = 0;
+  delete name_;
+  name_length_ = filename->length_;
+  name_ = new char[name_length_];
+  memmove(name_, filename->string_, name_length_);
+  memmove(buffer, name_, name_length_);
+  buffer[filename->length_] = 0;
 
-    myHash = 0;
-    length = 0;
-    fp = fopen(buffer, "rb");
-    if (fp) {
-        for (;;) {
-            len = static_cast<int>(fread(buffer, sizeof(char),
-                                   sizeof(buffer), fp));
-            if (len <= 0) {
-                break;
-            }
-            append(buffer, len);
-        }
-        fclose(fp);
-        return true;
-    } else {
-        return false;
+  my_hash_ = 0;
+  length_ = 0;
+  fp = fopen(buffer, "rb");
+  if (fp) {
+    for (;;) {
+      len = static_cast<int>(fread(buffer, sizeof(char),
+                             sizeof(buffer), fp));
+      if (len <= 0) {
+          break;
+      }
+      append(buffer, len);
     }
+    fclose(fp);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
 // set text
 
 void Text::setString(Text* t) {
-    myHash = 0;
-    if (t && t->length) {
-        length = t->length;
-        if (length > maxLength) {
-            delete string;
-            string = new char[length];
-            maxLength = length;
+    my_hash_ = 0;
+    if (t && t->length_) {
+        length_ = t->length_;
+        if (length_ > max_length_) {
+            delete string_;
+            string_ = new char[length_];
+            max_length_ = length_;
         }
-        memmove(string, t->string, length);
+        memmove(string_, t->string_, length_);
     } else {
-        length = 0;
+        length_ = 0;
     }
 }
 
@@ -507,36 +507,36 @@ void Text::setName(const char* s) {
 // set name with string
 
 void Text::setName(const char* s, int len) {
-    delete name;
-    nameLength = len;
-    name = new char[nameLength];
-    memmove(name, s, nameLength);
+    delete name_;
+    name_length_ = len;
+    name_ = new char[name_length_];
+    memmove(name_, s, name_length_);
 }
 
 
 // set name with text
 
 void Text::setName(Text* t) {
-    setName(t->string, t->length);
+    setName(t->string_, t->length_);
 }
 
 
 //  substring
 
 void Text::substr(int start, int len) {
-    memmove(string, &string[start], len);
-    length = len;
+    memmove(string_, &string_[start], len);
+    length_ = len;
 }
 
 
 // remove tail and return it
 
 Text* Text::tail(int index) {
-    if (index >= 0 && index < length) {
-        int len = length - index;
-        length = index;
-        myHash = 0;
-        return new Text(&string[index], len);
+    if (index >= 0 && index < length_) {
+        int len = length_ - index;
+        length_ = index;
+        my_hash_ = 0;
+        return new Text(&string_[index], len);
     } else {
         return new Text();
     }
@@ -547,8 +547,8 @@ Text* Text::tail(int index) {
 // reduces runs of whitespace to single space
 
 void Text::trim(Text* t) {
-    char* s = t->string;
-    int l = t->length;
+    char* s = t->string_;
+    int l = t->length_;
     int i = 0;
     bool b = false;
     for (;;) {
@@ -579,25 +579,25 @@ int Text::utfLength() {
     int c;
     int i = 0;
     int num = 0;
-    while (i < length) {
-        c = string[i] & 0xFF;
+    while (i < length_) {
+        c = string_[i] & 0xFF;
         i += 1;
         if (c >= 0xC0) {
             if (c < 0xE0) {  // 2-byte form
-                if ((i + 1) < length && ((string[i] & 0xC0) == 0x80)) {
+                if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
                     i += 1;
                 }
             } else if (c < 0xF0) {  // 3-byte form
-                if ((i + 2) < length &&
-                        ((string[i]     & 0xC0) == 0x80) &&
-                        ((string[i + 1] & 0xC0) == 0x80)) {
+                if ((i + 2) < length_ &&
+                        ((string_[i]     & 0xC0) == 0x80) &&
+                        ((string_[i + 1] & 0xC0) == 0x80)) {
                     i += 2;
                 }
             } else {  // 4-byte form
-                if ((i + 3) < length &&
-                        ((string[i]     & 0xC0) == 0x80) &&
-                        ((string[i + 1] & 0xC0) == 0x80) &&
-                        ((string[i + 2] & 0xC0) == 0x80)) {
+                if ((i + 3) < length_ &&
+                        ((string_[i]     & 0xC0) == 0x80) &&
+                        ((string_[i + 1] & 0xC0) == 0x80) &&
+                        ((string_[i + 2] & 0xC0) == 0x80)) {
                     i += 3;
                 }
             }
@@ -615,57 +615,57 @@ Text* Text::utfSubstr(int start, int len) {
     int i = 0;
     Text* t;
     while (start) {
-        if (i >= length) {
+        if (i >= length_) {
             return NULL;
         }
-        c = string[i] & 0xFF;
+        c = string_[i] & 0xFF;
         i += 1;
         if (c >= 0xC0) {
             if (c < 0xE0) {  // 2-byte form
-                if ((i + 1) < length && ((string[i] & 0xC0) == 0x80)) {
+                if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
                     i += 1;
                 }
             } else if (c < 0xF0) {  // 3-byte form
-                if ((i + 2) < length &&
-                        ((string[i]     & 0xC0) == 0x80) &&
-                        ((string[i + 1] & 0xC0) == 0x80)) {
+                if ((i + 2) < length_ &&
+                        ((string_[i]     & 0xC0) == 0x80) &&
+                        ((string_[i + 1] & 0xC0) == 0x80)) {
                     i += 2;
                 }
             } else {  // 4-byte form
-                if ((i + 3) < length &&
-                        ((string[i]     & 0xC0) == 0x80) &&
-                        ((string[i + 1] & 0xC0) == 0x80) &&
-                        ((string[i + 2] & 0xC0) == 0x80)) {
+                if ((i + 3) < length_ &&
+                        ((string_[i]     & 0xC0) == 0x80) &&
+                        ((string_[i + 1] & 0xC0) == 0x80) &&
+                        ((string_[i + 2] & 0xC0) == 0x80)) {
                     i += 3;
                 }
             }
         }
         start -= 1;
     }
-    t = new Text(length - i);
-    while (len && i < length) {
-        c = string[i] & 0xFF;
+    t = new Text(length_ - i);
+    while (len && i < length_) {
+        c = string_[i] & 0xFF;
         i += 1;
         t->append(c);
         if (c >= 0xC0) {
             if (c < 0xE0) {  // 2-byte form
-                if ((i + 1) < length && ((string[i] & 0xC0) == 0x80)) {
-                    t->append(string[i]);
+                if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
+                    t->append(string_[i]);
                     i += 1;
                 }
             } else if (c < 0xF0) {  // 3-byte form
-                if ((i + 2) < length &&
-                        ((string[i]     & 0xC0) == 0x80) &&
-                        ((string[i + 1] & 0xC0) == 0x80)) {
-                    t->append(&string[i], 2);
+                if ((i + 2) < length_ &&
+                        ((string_[i]     & 0xC0) == 0x80) &&
+                        ((string_[i + 1] & 0xC0) == 0x80)) {
+                    t->append(&string_[i], 2);
                     i += 2;
                 }
             } else {  // 4-byte form
-                if ((i + 3) < length &&
-                        ((string[i]     & 0xC0) == 0x80) &&
-                        ((string[i + 1] & 0xC0) == 0x80) &&
-                        ((string[i + 2] & 0xC0) == 0x80)) {
-                    t->append(&string[i], 3);
+                if ((i + 3) < length_ &&
+                        ((string_[i]     & 0xC0) == 0x80) &&
+                        ((string_[i + 1] & 0xC0) == 0x80) &&
+                        ((string_[i + 2] & 0xC0) == 0x80)) {
+                    t->append(&string_[i], 3);
                     i += 3;
                 }
             }
@@ -681,11 +681,11 @@ Text* Text::utfSubstr(int start, int len) {
 bool Text::write(Text* filename) {
     FILE *fp;
     char fname[256];
-    memmove(fname, filename->string, filename->length);
-    fname[filename->length] = 0;
+    memmove(fname, filename->string_, filename->length_);
+    fname[filename->length_] = 0;
     fp = fopen(fname, "wb");
     if (fp) {
-        fwrite(string, sizeof(char), length, fp);
+        fwrite(string_, sizeof(char), length_, fp);
         fclose(fp);
         return true;
     } else {
@@ -711,14 +711,14 @@ bool Text::write(Text* filename) {
 }
 
 uint32 Text::hash() {
-    if (myHash) {
-        return myHash;  // If we have already memoized the hash, use it.
+    if (my_hash_) {
+        return my_hash_;  // If we have already memoized the hash, use it.
     }
     register uint32  a = 0;
     register uint32  b = 0xDEADBEAD;
     register uint32  c = 0xCAFEB00B;
-    register uint8* k = reinterpret_cast<uint8*>(string);
-    register int  len = length;
+    register uint8* k = reinterpret_cast<uint8*>(string_);
+    register int  len = length_;
 
     while (len >= 12) {
         a += static_cast<uint32>(k[0]) +
@@ -737,7 +737,7 @@ uint32 Text::hash() {
         k += 12;
         len -= 12;
     }
-    c += length;
+    c += length_;
     switch (len) {
     case 11: c += static_cast<uint32>(k[10] << 24);
     case 10: c += static_cast<uint32>(k[9]  << 16);
@@ -752,6 +752,6 @@ uint32 Text::hash() {
     case 1:  a += static_cast<uint32>(k[0]);
     }
     mix(a, b, c);
-    myHash = c;
+    my_hash_ = c;
     return c;
 }
