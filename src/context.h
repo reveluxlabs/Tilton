@@ -40,10 +40,10 @@ class Context {
   void    AddArgument(const char* s);
   void    AddArgument(Text* t);
 
-  // dumpArgs
+  // DumpContext
   // Print info about the args in a frame
-  void    dump();
-  
+  void    DumpContext();
+
   void    ReportErrorAndDie(const char* reason, Text* evidence);
   void    ReportErrorAndDie(const char* reason);
 
@@ -67,7 +67,7 @@ class Context {
 
   number  evalNumber(int argNr);
   number  evalNumber(Node* n);
-  
+
   // GetArgument
   // Retrieves an argument
   // Arguments are stored as nodes on the frame.
@@ -76,8 +76,8 @@ class Context {
   void    nop();
 
   //  resetArg
-  //  Delete the value of an argument of a macro. 
-  //  This allows for evaluating an arg more than once. 
+  //  Delete the value of an argument of a macro.
+  //  This allows for evaluating an arg more than once.
   //  This is used by <~loop~>
   void    resetArg(int argNr);
 
@@ -113,7 +113,7 @@ class Context {
 
   // checkForTilde
   // Examines the input stream for a run of tildes
-  // Returns the number of consecutive tildes at the beginning 
+  // Returns the number of consecutive tildes at the beginning
   // of the stream and removes them
   int checkForTilde(Iter* in, int no) {
     while (in->next() == '~') {
@@ -122,7 +122,7 @@ class Context {
     in->back();
     return no;
   }
-  
+
   // haveTildes
   // Tests to determine if we have a run of tildes
   bool haveTildes(int run_length) {

@@ -368,7 +368,7 @@ it "should process the include builtin with null args" do
     # verify results
     result.should.include "19"
     # tear down fixture
-    #%x[ rm print.txt ]
+    %x[ rm print.txt ]
   end
 
   it "should process the rep builtin" do

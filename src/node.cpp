@@ -39,12 +39,12 @@ Node::~Node(void) {
     delete this->next_;
 }
 
-void Node::dump() {
+void Node::WriteNode() {
     if (text_) {
         fwrite(text_->string_, sizeof(char), text_->length_, stderr);
     }
     if (next_) {
         fputc('~', stderr);
-        next_->dump();
+        next_->WriteNode();
     }
 }

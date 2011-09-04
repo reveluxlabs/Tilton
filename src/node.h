@@ -27,19 +27,21 @@ class Text;
 
 class Node {
  public:
-    explicit Node(Text* t);
-    virtual ~Node();
+  explicit Node(Text* t);
+  virtual ~Node();
 
-    void    dump();
+  // WriteNode
+  // Recursively visit each node on the list and print the text
+  void    WriteNode();
 
-    Text*   text_;
-    Text*   value_;
-    Node*   next_;
+  Text*   text_;
+  Text*   value_;
+  Node*   next_;
 
 
-    bool hasValue() {
-      return this->value_ != 0;
-    }
+  bool hasValue() {
+    return this->value_ != 0;
+  }
 };
 
 #endif  // SRC_NODE_H_

@@ -90,7 +90,7 @@ class Text {
   // Tests to see if the arg is a digit
   static bool isDigit(int arg_number) {
     return arg_number >= 0 && arg_number <= 9;
-  }  
+  }
 
   // ConvertAlphaToIntegrer
   // unlike atoi, this function knows about Text

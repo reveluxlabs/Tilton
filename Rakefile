@@ -1,6 +1,8 @@
 require 'rake/clean' 
 
 CLEAN.include('src/*.o')
+CLEAN.include('src/lint/')
+CLEAN.include('src/*.sav')
 CLOBBER.include('tilton')
 
 task :default => :build 
@@ -17,6 +19,18 @@ task :test do
   sh "specrb test/spec_builtins.rb"
   sh "specrb test/spec_text.rb"
 end
+
+desc "Run cpplint"
+task :lint => ["src/lint"] do
+  SRC.each do |f|
+    name = File.basename(f)
+    %x[ cpplint.py "src/#{name}" 2> "src/lint/#{name}.lint" ]
+    name = name.ext('h')
+    %x[ cpplint.py "src/#{name}" 2> "src/lint/#{name}.lint" ]
+  end
+end
+
+directory "src/lint"
 
 # Rule 
 rule '.o' => ['.cpp'] do |t|

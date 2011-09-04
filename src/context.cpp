@@ -84,9 +84,9 @@ void Context::AddArgument(Text* t) {
 }
 
 
-void Context::dump() {
+void Context::DumpContext() {
     if (first_) {
-        first_->dump();
+        first_->WriteNode();
     }
     fputc('\n', stderr);
 }
@@ -367,7 +367,8 @@ void Context::FindError(Text* report) {
     report->appendNumber(index_ + 1);
     report->append(") ");
   }
-  if (first_ && first_->text_ && first_->text_->length_) {  // added first_ jr 4Sep11
+  // add first_ jr 4Sep11
+  if (first_ && first_->text_ && first_->text_->length_) { 
     report->append("<~");
     report->append(first_->text_);
     report->append("~> ");

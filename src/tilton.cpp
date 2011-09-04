@@ -184,8 +184,9 @@ int main(int argc, const char * argv[]) {
                     j = k;
                 } else {
 // none of the above
-                    context->ReportErrorAndDie("Unrecognized command line parameter",
-                                   new Text(arg));
+                    context->ReportErrorAndDie(
+                        "Unrecognized command line parameter",
+                        new Text(arg));
                 }
             }
         } else {

@@ -27,7 +27,7 @@
 #include "context.h"
 
 extern Text* g_the_output;
-extern SearchList* g_macro_table; 
+extern SearchList* g_macro_table;
 
 
 // reduce - reduce a list of parameters to a single value. This is used
@@ -567,7 +567,7 @@ static void tilton_or(Context* context) {
 //  tilton print
 
 static void tilton_print(Context* context) {
-    context->dump();
+    context->DumpContext();
 }
 
 
@@ -659,8 +659,9 @@ static void tilton_substr(Context* context) {
             ber = context->evalNumber(n);
         }
         if (num >= 0 && ber > 0) {
-            g_the_output->append(context->evalArg(1)->utfSubstr((int)num,
-                                                             (int)ber));
+            g_the_output->append(
+                context->evalArg(1)->utfSubstr(static_cast<int>(num),
+                                               static_cast<int>(ber)));
         }
     }
 }
@@ -684,7 +685,7 @@ static void tilton_unicode(Context* context) {
     while (n) {
         number num = context->evalNumber(n);
         if (num >= 0) {
-            int i = (int)num;
+            int i = static_cast<int>(num);
             if (i <= 0x7F) {
                 g_the_output->append(i);
             } else if (i <= 0x7FF) {
@@ -701,7 +702,8 @@ static void tilton_unicode(Context* context) {
                 g_the_output->append(0x8000 |  (i        & 0x3F));
             }
         } else {
-            context->ReportErrorAndDie("Bad character code", context->evalArg(n));
+            context->ReportErrorAndDie(
+                "Bad character code", context->evalArg(n));
             return;
         }
         n = n->next_;
