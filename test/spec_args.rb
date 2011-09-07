@@ -11,15 +11,64 @@ describe "A command line macro processor (in general)" do
     result.should.include "Charlie"
   end
 
-  it "should take named args from the command line" do
+  it "should process the eval option from the command line" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~name~>" | ./tilton -e "<~define~name~charlie~>" ]
+    # verify results
+    result.should.include "charlie" 
+  end
+
+  it "should process the include option from the command line" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton Revelux -i "test/head.snip"  -n]
+    # verify results
+    result.should.include "%title Revelux"
+  end
+
+  it "should process the help option from the command line" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton -h ]
+    # verify results
+    result.size.should.be 243
+  end
+
+  it "should process the mute option from the command line" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton -r "test/front.snip" -m -n ]
+    # verify results
+    result.size.should.be 0
+  end
+
+  it "should process the read option from the command line" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton -r "test/front.snip" -n ]
+    # verify results
+    result.size.should.be 1938
+  end
+
+  it "should process the set option from the command line" do
     # setup fixture
     name = "Carl_Hollywood"
     # execute SUT
-    # if name has spaces in a string, %x seems to just return the first
-    # token followed by a newline
     result = %x[ echo "<~name~>" | ./tilton -s name #{name} ]
     # verify results
     result.should.include name
+  end
+
+  it "should process the write option from the command line" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton -r "test/front.snip" -w write.txt -n ]
+    result = %x[ wc write.txt ]
+    # verify results
+    result.should.include "1938"
+    # tear down fixture
+    %x[ rm write.txt ]
   end
 
   it "should process the zero digit macro" do
@@ -68,6 +117,22 @@ describe "A command line macro processor (in general)" do
     result = %x[ echo "<~10~3~><~10~>" | ./tilton -10 charlie ]
     # verify results
     result.should.include "3"
+  end
+
+  it "should produce an error for unrecognized command line args" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton -j charlie  2> /dev/null ]
+    # verify results
+    result.should.include "Unrecognized command line parameter"
+  end
+
+  it "should produce an error for uppercase command line args" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton -E charlie  2> /dev/null ]
+    # verify results
+    result.should.include "Unrecognized command line parameter"
   end
 
 end

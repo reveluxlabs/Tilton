@@ -18,6 +18,7 @@ task :test do
   sh "specrb -a"
   sh "specrb test/spec_builtins.rb"
   sh "specrb test/spec_text.rb"
+  sh "specrb test/spec_args.rb"
 end
 
 desc "Run cpplint"

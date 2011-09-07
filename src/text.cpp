@@ -319,7 +319,7 @@ void Text::init(const char* s, int len) {
 
 // read from standard input
 
-void Text::input() {
+void Text::ReadStdInput() {
     char buffer[10240];
     int len;
     length_ = 0;

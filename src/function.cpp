@@ -88,7 +88,7 @@ static void test(Context* context, int (*f)(Text*, Text*)) {
         context->ReportErrorAndDie("No parameters");
         return;
     }
-    Text* swich = context->evalArg(s);
+    Text* swich = context->EvaluateArgument(s);
     c = s->next_;
     if (!c) {
         context->ReportErrorAndDie("Too few parameters");
@@ -98,8 +98,8 @@ static void test(Context* context, int (*f)(Text*, Text*)) {
         context->ReportErrorAndDie("Too few parameters");
     }
     for (;;) {
-        if (f(swich, context->evalArg(c))) {  // then
-            g_the_output->append(context->evalArg(t));
+        if (f(swich, context->EvaluateArgument(c))) {  // then
+            g_the_output->append(context->EvaluateArgument(t));
             return;
         }
         c = t->next_;
@@ -108,7 +108,7 @@ static void test(Context* context, int (*f)(Text*, Text*)) {
         }
         t = c->next_;
         if (!t) {    // else
-            g_the_output->append(context->evalArg(c));
+            g_the_output->append(context->EvaluateArgument(c));
             return;
         }
     }
@@ -155,7 +155,7 @@ static void tilton_and(Context* context) {
     Node* n = context->first_->next_;
     Text* t = NULL;
     while (n) {
-        t = context->evalArg(n);
+        t = context->EvaluateArgument(n);
         if (t->length_ == 0) {
             return;
         }
@@ -172,7 +172,7 @@ static void tilton_append(Context* context) {
     if (n == NULL) {
         context->ReportErrorAndDie("Missing name");
     }
-    Text* name = context->evalArg(n);
+    Text* name = context->EvaluateArgument(n);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
@@ -184,7 +184,7 @@ static void tilton_append(Context* context) {
         if (!n) {
             break;
         }
-        t->append(context->evalArg(n));
+        t->append(context->EvaluateArgument(n));
     }
 }
 
@@ -194,7 +194,7 @@ static void tilton_append(Context* context) {
 static void tilton_define(Context* context) {
     int position = g_the_output->length_;
     g_the_output->append(context->GetArgument(2)->text_);
-    Text* name = context->evalArg(1);
+    Text* name = context->EvaluateArgument(1);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
@@ -206,7 +206,7 @@ static void tilton_define(Context* context) {
 
 static void tilton_defined_(Context* context) {
   g_the_output->append(
-      context->evalArg(g_macro_table->lookup(context->evalArg(1)) ? 2 : 3));
+      context->EvaluateArgument(g_macro_table->lookup(context->EvaluateArgument(1)) ? 2 : 3));
 }
 
 
@@ -215,7 +215,7 @@ static void tilton_defined_(Context* context) {
 static void tilton_delete(Context* context) {
   Node* n = context->first_->next_;
   while (n) {
-    Text* name = context->evalArg(n);
+    Text* name = context->EvaluateArgument(n);
     Text* t = g_macro_table->lookup(name);
     Text* u = NULL;
     while (t) {
@@ -255,7 +255,7 @@ static void tilton_dump(Context* context) {
 //  been replaced with their HTML entity equivalents.
 
 static void tilton_entityify(Context* context) {
-    Text* t = context->evalArg(1);
+    Text* t = context->EvaluateArgument(1);
     int c;
     int i;
     if (t && t->length_) {
@@ -322,7 +322,7 @@ static void tilton_eval(Context* context) {
 
 static void tilton_first(Context* context) {
     Node* n = context->first_->next_;
-    Text* name = context->evalArg(n);
+    Text* name = context->EvaluateArgument(n);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name: first");
     }
@@ -339,10 +339,10 @@ static void tilton_first(Context* context) {
         if (!n) {
             break;
         }
-        int index = string->indexOf(context->evalArg(n));
+        int index = string->indexOf(context->EvaluateArgument(n));
         if (index >= 0 && index < r) {
             r = index;
-            d = context->evalArg(n);
+            d = context->EvaluateArgument(n);
             len = d->length_;
         }
     }
@@ -378,7 +378,7 @@ static void tilton_gensym(Context* context) {
 static void tilton_get(Context* context) {
     Node* n = context->first_->next_;
     while (n) {
-        Text* name = context->evalArg(n);
+        Text* name = context->EvaluateArgument(n);
         Text* macro = g_macro_table->lookup(name);
         if (macro) {
             g_the_output->append(macro);
@@ -402,7 +402,7 @@ static void tilton_gt_(Context* context) {
 static void tilton_include(Context* context) {
     // Node* n = context->first_->next_;
     Text* string = new Text();
-    Text* name = context->evalArg(1);
+    Text* name = context->EvaluateArgument(1);
     if (!string->read(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
@@ -425,7 +425,7 @@ static void tilton_include(Context* context) {
 
 static void tilton_last(Context* context) {
     Node* n = context->first_->next_;
-    Text* name = context->evalArg(1);
+    Text* name = context->EvaluateArgument(1);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
@@ -442,10 +442,10 @@ static void tilton_last(Context* context) {
         if (!n) {
             break;
         }
-        int index = string->lastIndexOf(context->evalArg(n));
+        int index = string->lastIndexOf(context->EvaluateArgument(n));
         if (index > r) {
             r = index;
-            d = context->evalArg(n);
+            d = context->EvaluateArgument(n);
             len = d->length_;
         }
     }
@@ -470,7 +470,7 @@ static void tilton_le_(Context* context) {
 //  tilton length
 
 static void tilton_length(Context* context) {
-    g_the_output->appendNumber(context->evalArg(1)->utfLength());
+    g_the_output->appendNumber(context->EvaluateArgument(1)->utfLength());
 }
 
 
@@ -486,10 +486,10 @@ static void tilton_literal(Context* context) {
 
 static void tilton_loop(Context* context) {
     // Node* n = context->first_->next_;
-    while (context->evalArg(1)->length_ > 0) {
+    while (context->EvaluateArgument(1)->length_ > 0) {
         context->resetArg(1);
         context->resetArg(2);
-        g_the_output->append(context->evalArg(2));
+        g_the_output->append(context->EvaluateArgument(2));
     }
 }
 
@@ -520,7 +520,7 @@ static void tilton_mult(Context* context) {
 static void tilton_mute(Context* context) {
     Node* n = context->first_->next_;
     while (n) {
-        context->evalArg(n);
+        context->EvaluateArgument(n);
         n = n->next_;
     }
 }
@@ -543,8 +543,8 @@ static void tilton_null(Context* context) {
 //  tilton number?
 
 static void tilton_number_(Context* context) {
-    number num = context->evalArg(1)->getNumber();
-    g_the_output->append(context->evalArg(num != NAN ? 2 : 3));
+    number num = context->EvaluateArgument(1)->getNumber();
+    g_the_output->append(context->EvaluateArgument(num != NAN ? 2 : 3));
 }
 
 
@@ -554,7 +554,7 @@ static void tilton_or(Context* context) {
     Node* n = context->first_->next_;
     Text* t = NULL;
     while (n) {
-        t = context->evalArg(n);
+        t = context->EvaluateArgument(n);
         if (t->length_) {
             break;
         }
@@ -575,7 +575,7 @@ static void tilton_print(Context* context) {
 
 static void tilton_read(Context* context) {
     Text* string = new Text();
-    Text* name = context->evalArg(1);
+    Text* name = context->EvaluateArgument(1);
     if (!string->read(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
@@ -588,7 +588,7 @@ static void tilton_read(Context* context) {
 
 static void tilton_rep(Context* context) {
     // Node* n = context->first_->next_;
-    Text* value = context->evalArg(1);
+    Text* value = context->EvaluateArgument(1);
     for (number num = context->evalNumber(2); num > 0; num -= 1) {
         g_the_output->append(value);
     }
@@ -597,11 +597,11 @@ static void tilton_rep(Context* context) {
 //  tilton set
 
 static void tilton_set(Context* context) {
-    Text* name = context->evalArg(1);
+    Text* name = context->EvaluateArgument(1);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
-    g_macro_table->install(name, context->evalArg(2));
+    g_macro_table->install(name, context->EvaluateArgument(2));
 }
 
 
@@ -609,7 +609,7 @@ static void tilton_set(Context* context) {
 //  characters get a \ prefix.
 
 static void tilton_slashify(Context* context) {
-    Text* t = context->evalArg(1);
+    Text* t = context->EvaluateArgument(1);
     int c;
     int i;
     if (t && t->length_) {
@@ -631,7 +631,7 @@ static void tilton_slashify(Context* context) {
 //  tilton stop
 
 static void tilton_stop(Context* context) {
-    context->ReportErrorAndDie("Stop", context->evalArg(1));
+    context->ReportErrorAndDie("Stop", context->EvaluateArgument(1));
 }
 
 
@@ -646,7 +646,7 @@ static void tilton_sub(Context* context) {
 
 static void tilton_substr(Context* context) {
     Node* n = context->first_->next_;
-    Text* string = context->evalArg(n);
+    Text* string = context->EvaluateArgument(n);
     n = n->next_;
     if (n) {
         number num = context->evalNumber(n);
@@ -660,7 +660,7 @@ static void tilton_substr(Context* context) {
         }
         if (num >= 0 && ber > 0) {
             g_the_output->append(
-                context->evalArg(1)->utfSubstr(static_cast<int>(num),
+                context->EvaluateArgument(1)->utfSubstr(static_cast<int>(num),
                                                static_cast<int>(ber)));
         }
     }
@@ -672,7 +672,7 @@ static void tilton_substr(Context* context) {
 static void tilton_trim(Context* context) {
     Node* n = context->first_->next_;
     while (n) {
-        g_the_output->trim(context->evalArg(n));
+        g_the_output->trim(context->EvaluateArgument(n));
         n = n->next_;
     }
 }
@@ -703,7 +703,7 @@ static void tilton_unicode(Context* context) {
             }
         } else {
             context->ReportErrorAndDie(
-                "Bad character code", context->evalArg(n));
+                "Bad character code", context->EvaluateArgument(n));
             return;
         }
         n = n->next_;
@@ -714,19 +714,19 @@ static void tilton_unicode(Context* context) {
 //  tilton write
 
 static void tilton_write(Context* context) {
-    Text* name = context->evalArg(1);
-    if (!context->evalArg(2)->write(name)) {
+    Text* name = context->EvaluateArgument(1);
+    if (!context->EvaluateArgument(2)->write(name)) {
         context->ReportErrorAndDie("Error in writing file", name);
     }
 }
 
 
-// jr 1Sep11 (based on code by Douglas Crockford)
+// jr 1Sep11
 FunctionContext::FunctionContext() {
     // No further initialization required.
 }
 
-// jr 1Sep11 (based on code by Douglas Crockford)
+// jr 1Sep11
 FunctionContext::~FunctionContext() {
     // No further deallocation required.
 }

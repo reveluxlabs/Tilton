@@ -21,6 +21,7 @@
 #ifndef SRC_TILTON_H_
 #define SRC_TILTON_H_
 
+#include <map>
 #define EOT (-1)
 
 // Tilton numbers are integers.
@@ -42,5 +43,35 @@ typedef long number;
 
 typedef unsigned long int  uint32;   /* unsigned 4-byte quantities */
 typedef unsigned      char uint8;    /* unsigned 1-byte quantities */
+
+class Context;
+class Text;
+class OptionProcessor;
+
+// MacroProcessor -- coordinator for macro processing
+
+class MacroProcessor {
+ public:
+  MacroProcessor();
+  virtual ~MacroProcessor();
+
+  // CreateOptionProcessors
+  // Store function objects in a map for use in command line processing
+  void CreateOptionProcessors();
+  
+  // ProcessCommandLine
+  // Read the command line arguments and process
+  bool ProcessCommandLine(int argc, const char * argv[]);
+
+  // Run
+  // Read the standard input and expand the macros, write to standard out
+  void Run(bool go);
+
+ private:
+  Context*                          top_frame_;
+  Text*                             in_;
+  Text*                             the_output_;
+  std::map<char, OptionProcessor*>  option_processors_;
+};
 
 #endif  // SRC_TILTON_H_

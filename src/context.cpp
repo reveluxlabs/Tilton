@@ -212,14 +212,14 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
           arg_number = arg_text->ConvertAlphaToInteger();
           if (arg_number >= 0) {
             if (!arg->next_) {
-              g_the_output->addToString(this->evalArg(arg_number));
+              g_the_output->addToString(this->EvaluateArgument(arg_number));
             } else {
               //    <~NUMBER~value~>
               arg = new_context->GetArgument(arg_number);
               if (!arg->hasValue()) {
-                arg = Context::evalTextForArg(1, new_context, g_the_output);
+                arg = this->EvalTextForArg(1, new_context, g_the_output);
               }
-              Context::SetMacroVariable(arg_number, arg->value_);
+              this->SetMacroVariable(arg_number, arg->value_);
             }
             delete new_context;
             return;
@@ -234,7 +234,7 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
   }
 }
 
-Node* Context::evalTextForArg(int arg_number, Context* &new_context,
+Node* Context::EvalTextForArg(int arg_number, Context* &new_context,
                              Text* &g_the_output) {
   Node* n;
   n = new_context->GetArgument(arg_number);
@@ -257,7 +257,7 @@ void Context::ExpandMacro(Context* &new_context) {
     Text* macro;
     Text* name;
 
-    name = new_context->evalArg(0);
+    name = new_context->EvaluateArgument(0);
     macro = g_macro_table->lookup(name);
     if (macro) {
         if (macro->function_) {
@@ -281,12 +281,12 @@ void Context::EvaluateEOT(Iter* in, int &depth, Text* g_the_output,
     delete in;
 }
 
-Text* Context::evalArg(int argNr) {
-    return evalArg(GetArgument(argNr));
+Text* Context::EvaluateArgument(int argNr) {
+    return EvaluateArgument(GetArgument(argNr));
 }
 
 
-Text* Context::evalArg(Node* n) {
+Text* Context::EvaluateArgument(Node* n) {
   if (n == NULL) {
       return NULL;
   }
@@ -312,9 +312,9 @@ number Context::evalNumber(Node* n) {
   if (!n) {
     return 0;
   }
-  number num = evalArg(n)->getNumber();
+  number num = EvaluateArgument(n)->getNumber();
   if (num == NAN) {
-    ReportErrorAndDie("Not a number", evalArg(n));
+    ReportErrorAndDie("Not a number", EvaluateArgument(n));
   }
   return num;
 }
@@ -341,8 +341,8 @@ Node* Context::GetArgument(int argNr) {
 }
 
 
-void Context::nop() {
-}
+//void Context::nop() {
+//}
 
 
 void Context::resetArg(int argNr) {
@@ -368,7 +368,7 @@ void Context::FindError(Text* report) {
     report->append(") ");
   }
   // add first_ jr 4Sep11
-  if (first_ && first_->text_ && first_->text_->length_) { 
+  if (first_ && first_->text_ && first_->text_->length_) {
     report->append("<~");
     report->append(first_->text_);
     report->append("~> ");

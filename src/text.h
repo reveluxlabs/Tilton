@@ -48,7 +48,10 @@ class Text {
   number  getNumber();
   uint32  hash();
   int     indexOf(Text* t);
-  void    input();
+  
+  // ReadStdInput
+  // Read from stdin and append to string
+  void    ReadStdInput();
   bool    is(const char* s);
   bool    is(Text* t);
   bool    isName(Text* t);
