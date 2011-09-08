@@ -100,12 +100,12 @@ void Context::ReportErrorAndDie(const char* reason) {
 void Context::ReportErrorAndDie(const char* reason, Text* evidence) {
     Text* report = new Text(80);
     FindError(report);
-    report->append(reason);
+    report->AddToString(reason);
     if (evidence) {
-        report->append(": ");
-        report->append(evidence);
+        report->AddToString(": ");
+        report->AddToString(evidence);
     }
-    report->append(".\n");
+    report->AddToString(".\n");
     fwrite(report->string_, sizeof(char), report->length_, stdout);
     fwrite(report->string_, sizeof(char), report->length_, stderr);
     exit(1);
@@ -351,19 +351,19 @@ void Context::FindError(Text* report) {
     previous_->FindError(report);
   }
   if (source_) {
-    report->append(source_->text->name_, source_->text->name_length_);
-    report->append('(');
-    report->appendNumber(line_ + 1);
-    report->append(',');
-    report->appendNumber(character_ + 1);
-    report->append('/');
-    report->appendNumber(index_ + 1);
-    report->append(") ");
+    report->AddToString(source_->text->name_, source_->text->name_length_);
+    report->AddToString('(');
+    report->AddNumberToString(line_ + 1);
+    report->AddToString(',');
+    report->AddNumberToString(character_ + 1);
+    report->AddToString('/');
+    report->AddNumberToString(index_ + 1);
+    report->AddToString(") ");
   }
   // add first_ jr 4Sep11
   if (first_ && first_->text_ && first_->text_->length_) {
-    report->append("<~");
-    report->append(first_->text_);
-    report->append("~> ");
+    report->AddToString("<~");
+    report->AddToString(first_->text_);
+    report->AddToString("~> ");
   }
 }

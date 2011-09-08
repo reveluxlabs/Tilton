@@ -26,7 +26,7 @@
 
 class Context;
 
-typedef void (*Op)(Context* context);
+typedef void (*Builtin)(Context* context);
 
 class Text {
  public:
@@ -37,16 +37,26 @@ class Text {
   explicit Text(Text* t);
   virtual ~Text();
 
-  void    append(int c);
-  void    append(int c, int n);
-  void    append(const char* s);
-  void    append(const char* s, int len);
-  void    append(Text* t);
-  void    appendNumber(number);
+  // AddToString
+  // appends text to the string wrapped by Text
+  void    AddToString(int c);
+  void    AddToString(int c, int n);
+  void    AddToString(const char* s);
+  void    AddToString(const char* s, int len);
+  void    AddToString(Text* t);
+  
+  // AddNumberToString
+  // appends a number to the string wrapped by Text
+  void    AddNumberToString(number);
+  
   void    dump();
   int     getChar(int index);
   number  getNumber();
-  uint32  hash();
+  
+  // Hash
+  // calculate a hash for a string
+  uint32  Hash();
+  
   int     indexOf(Text* t);
 
   // ReadStdInput
@@ -57,33 +67,58 @@ class Text {
   bool    isName(Text* t);
   int     lastIndexOf(Text* t);
   bool    lt(Text* t);
-  void    output();
-  bool    read(Text* t);
-  void    setString(Text* t);
-  void    setName(const char* s);
-  void    setName(const char* s, int len);
-  void    setName(Text* t);
+  
+  // WriteStdOutput
+  // write string_ to stdout
+  void    WriteStdOutput();
+  
+  // ReadFromFile
+  // read the file in 10K chunks and add to string_
+  bool    ReadFromFile(Text* t);
+  
+  // set_string
+  // setter for string_
+  void    set_string(Text* t);
+  
+  // set_name
+  // setter for name_
+  void    set_name(const char* s);
+  void    set_name(const char* s, int len);
+  void    set_name(Text* t);
+  
   void    substr(int start, int len);
   Text*   tail(int index);
-  void    trim(Text* t);
+  
+  // RemoveSpacesAddToString
+  // trims whitespace before appending to string_
+  void    RemoveSpacesAddToString(Text* t);
+  
   int     utfLength();
   Text*   utfSubstr(int start, int len);
-  bool    write(Text* t);
+  
+  // WriteToFile
+  // writes string_ to a file
+  bool    WriteToFile(Text* t);
 
+  // added in initial refactoring of eval
+  // replace with body
   void    addToString(char c) {
-      this->append(c);
+      this->AddToString(c);
   }
   void    addToString(char c, int i) {
-      this->append(c, i);
+      this->AddToString(c, i);
   }
   void    addToString(Text* s) {
       if (s) {
-          this->append(s->string_, s->length_);
+          this->AddToString(s->string_, s->length_);
       }
   }
   Text*    removeFromString(int i) {
       return this->tail(i);
   }
+  
+  // allDigits
+  // Tests to see if a string is all digits
   bool    allDigits() {
     const char*   cset = "1234567890";
     return this->length_ == strspn(this->string_, cset);
@@ -115,18 +150,27 @@ class Text {
     return num;
   }
 
+  // ltNum
+  // less than for numbers
+  // used by lt
   bool ltNum(Text* t);
+  
+  // ltStr
+  // less than for strings
+  // used by lt
   bool ltStr(Text* t);
 
-  Op      function_;
-  int     length_;
-  Text*   link_;       // hash collisions
-  char*   name_;
-  int     name_length_;
-  char*   string_;
+  Builtin      function_;
+  int          length_;
+  Text*        link_;       // hash collisions
+  char*        name_;
+  int          name_length_;
+  char*        string_;
 
  private:
-  void    checkMaxLength(int len);
+  // CheckLengthAndIncrease
+  // Test the length of string against the max, increase if needed
+  void    CheckLengthAndIncrease(int len);
   void    init(const char* s, int len);
 
   uint32  my_hash_;

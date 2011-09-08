@@ -49,7 +49,7 @@ bool EvalProcessor::ProcessOption(int argc, const char * argv[],
   if (cmd_arg < argc) {
     string = new Text(argv[cmd_arg]);
     cmd_arg += 1;
-    string->setName("[eval]");
+    string->set_name("[eval]");
     top_frame->eval(string);
     delete string;
   } else {
@@ -63,7 +63,7 @@ bool GoProcessor::ProcessOption(int argc, const char * argv[],
                                 int &frame_arg, Context* top_frame,
                                 Text* in) {
   in->ReadStdInput();
-  in->setName("[go]");
+  in->set_name("[go]");
   top_frame->eval(in);
   return false;
 }
@@ -98,7 +98,7 @@ bool IncludeProcessor::ProcessOption(int argc, const char * argv[],
     name = new Text(argv[cmd_arg]);
     cmd_arg += 1;
     string = new Text();
-    if (!string->read(name)) {
+    if (!string->ReadFromFile(name)) {
       top_frame->ReportErrorAndDie("Error in -include", name);
     }
     top_frame->eval(string);
@@ -137,10 +137,10 @@ bool ReadProcessor::ProcessOption(int argc, const char * argv[],
   name = new Text(argv[cmd_arg]);
   cmd_arg += 1;
   string = new Text();
-  if (!string->read(name)) {
+  if (!string->ReadFromFile(name)) {
     top_frame->ReportErrorAndDie("Error in -read", name);
   }
-  g_the_output->append(string);
+  g_the_output->AddToString(string);
   delete name;
   delete string;
   } else {
@@ -179,7 +179,7 @@ bool WriteProcessor::ProcessOption(int argc, const char * argv[],
   if (cmd_arg < argc) {
     name = new Text(argv[cmd_arg]);
     cmd_arg += 1;
-    if (!g_the_output->write(name)) {
+    if (!g_the_output->WriteToFile(name)) {
       top_frame->ReportErrorAndDie("Error in -write", name);
     }
     g_the_output->length_ = 0;

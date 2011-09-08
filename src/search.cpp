@@ -47,8 +47,8 @@ void SearchList::set_the_macro_list(uint32 h, Text* t) {
 }
 
 void SearchList::link(Text* name, Text* t) {
-    uint32 h = name->hash() & MAXHASH;
-    t->setName(name);
+    uint32 h = name->Hash() & MAXHASH;
+    t->set_name(name);
     t->link_ = SearchList::the_macro_list(h);
     SearchList::set_the_macro_list(h, t);
 }
@@ -77,7 +77,7 @@ void SearchList::install(const char* namestring, const char* string) {
 //  The list is a hash table with links for collisions.
 
 Text* SearchList::lookup(Text* name) {
-    Text* t = SearchList::the_macro_list(name->hash() & MAXHASH);
+    Text* t = SearchList::the_macro_list(name->Hash() & MAXHASH);
     while (t) {
         if (t->isName(name)) {
             break;
@@ -95,7 +95,7 @@ Text* SearchList::lookup(Text* name) {
 void SearchList::install(Text* name, Text* value) {
     Text* t = SearchList::lookup(name);
     if (t) {
-        t->setString(value);
+        t->set_string(value);
     } else {
         SearchList::link(name, new Text(value));
     }
@@ -115,8 +115,8 @@ Text* SearchList::getDef(Text* name) {
     Text* t = SearchList::lookup(name);
     if (!t) {
         t = new Text(0);
-        uint32 h = name->hash() & MAXHASH;
-        t->setName(name);
+        uint32 h = name->Hash() & MAXHASH;
+        t->set_name(name);
         t->link_ = SearchList::the_macro_list(h);
         SearchList::set_the_macro_list(h, t);
     }

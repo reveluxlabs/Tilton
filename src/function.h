@@ -75,7 +75,7 @@ class ArithmeticFunction {
              }
          }
      }
-     g_the_output->appendNumber(num);
+     g_the_output->AddNumberToString(num);
   }
 
   static number add(number first, number second) {
@@ -124,7 +124,7 @@ class BooleanFunction {
      }
      for (;;) {
          if (f(swich, context->EvaluateArgument(c))) {  // then
-             g_the_output->append(context->EvaluateArgument(t));
+             g_the_output->AddToString(context->EvaluateArgument(t));
              return;
          }
          c = t->next_;
@@ -133,7 +133,7 @@ class BooleanFunction {
          }
          t = c->next_;
          if (!t) {    // else
-             g_the_output->append(context->EvaluateArgument(c));
+             g_the_output->AddToString(context->EvaluateArgument(c));
              return;
          }
      }
@@ -199,7 +199,7 @@ class AndFunction {
         }
         n = n->next_;
     }
-    g_the_output->append(t);
+    g_the_output->AddToString(t);
   }
 };
 
@@ -230,7 +230,7 @@ class AppendFunction {
         if (!n) {
             break;
         }
-        t->append(context->EvaluateArgument(n));
+        t->AddToString(context->EvaluateArgument(n));
     }
   }
 };
@@ -247,7 +247,7 @@ class DefineFunction {
 
   static void evaluate(Context* context) {
     int position = g_the_output->length_;
-    g_the_output->append(context->GetArgument(2)->text_);
+    g_the_output->AddToString(context->GetArgument(2)->text_);
     Text* name = context->EvaluateArgument(1);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
@@ -268,7 +268,7 @@ class DefinedFunction {
   }
 
   static void evaluate(Context* context) {
-  g_the_output->append(
+  g_the_output->AddToString(
       context->EvaluateArgument(
         MacroTable::instance()->macro_table()->
         lookup(context->EvaluateArgument(1)) ? 2 : 3));
@@ -358,28 +358,28 @@ class EntityifyFunction {
             c = t->getChar(i);
             switch (c) {
                 case '&':
-                    g_the_output->append("&amp;");
+                    g_the_output->AddToString("&amp;");
                     break;
                 case '<':
-                    g_the_output->append("&lt;");
+                    g_the_output->AddToString("&lt;");
                     break;
                 case '>':
-                    g_the_output->append("&gt;");
+                    g_the_output->AddToString("&gt;");
                     break;
                 case '"':
-                    g_the_output->append("&quot;");
+                    g_the_output->AddToString("&quot;");
                     break;
                 case '\'':
-                    g_the_output->append("&#039;");
+                    g_the_output->AddToString("&#039;");
                     break;
                 case '\\':
-                    g_the_output->append("&#092;");
+                    g_the_output->AddToString("&#092;");
                     break;
                 case '~':
-                    g_the_output->append("&#126;");
+                    g_the_output->AddToString("&#126;");
                     break;
                 default:
-                    g_the_output->append(c);
+                    g_the_output->AddToString(c);
             }
         }
     }
@@ -462,7 +462,7 @@ class FirstFunction {
             len = d->length_;
         }
     }
-    g_the_output->append(string->string_, r);
+    g_the_output->AddToString(string->string_, r);
     string->substr(r + len, string->length_ - (r + len));
     n = context->previous_->GetArgument(0);
     delete n->text_;
@@ -500,7 +500,7 @@ class GensymFunction {
   static void evaluate(Context* context) {
     static number theSequenceNumber = 1000;
     theSequenceNumber += 1;
-    g_the_output->appendNumber(theSequenceNumber);
+    g_the_output->AddNumberToString(theSequenceNumber);
   }
 };
 
@@ -520,7 +520,7 @@ class GetFunction {
         Text* name = context->EvaluateArgument(n);
         Text* macro = MacroTable::instance()->macro_table()->lookup(name);
         if (macro) {
-            g_the_output->append(macro);
+            g_the_output->AddToString(macro);
         } else {
             context->ReportErrorAndDie("Undefined variable", name);
         }
@@ -558,7 +558,7 @@ class IncludeFunction {
     // Node* n = context->first_->next_;
     Text* string = new Text();
     Text* name = context->EvaluateArgument(1);
-    if (!string->read(name)) {
+    if (!string->ReadFromFile(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
     Context* new_context = new Context(context, NULL);
@@ -613,7 +613,7 @@ class LastFunction {
             len = d->length_;
         }
     }
-    g_the_output->append(string->string_ + r + len,
+    g_the_output->AddToString(string->string_ + r + len,
                       string->length_ - (r + len));
     string->length_ = r;
     n = context->previous_->GetArgument(0);
@@ -650,7 +650,7 @@ class LengthFunction {
   }
 
   static void evaluate(Context* context) {
-    g_the_output->appendNumber(context->EvaluateArgument(1)->utfLength());
+    g_the_output->AddNumberToString(context->EvaluateArgument(1)->utfLength());
   }
 };
 
@@ -665,7 +665,7 @@ class LiteralFunction {
   }
 
   static void evaluate(Context* context) {
-    g_the_output->append(context->GetArgument(1)->text_);
+    g_the_output->AddToString(context->GetArgument(1)->text_);
   }
 };
 
@@ -684,7 +684,7 @@ class LoopFunction {
     while (context->EvaluateArgument(1)->length_ > 0) {
         context->resetArg(1);
         context->resetArg(2);
-        g_the_output->append(context->EvaluateArgument(2));
+        g_the_output->AddToString(context->EvaluateArgument(2));
     }
   }
 };
@@ -794,7 +794,7 @@ class NumberFunction {
 
   static void evaluate(Context* context) {
     number num = context->EvaluateArgument(1)->getNumber();
-    g_the_output->append(context->EvaluateArgument(num != NAN ? 2 : 3));
+    g_the_output->AddToString(context->EvaluateArgument(num != NAN ? 2 : 3));
   }
 };
 
@@ -818,7 +818,7 @@ class OrFunction {
         }
         n = n->next_;
     }
-    g_the_output->append(t);
+    g_the_output->AddToString(t);
   }
 };
 
@@ -850,10 +850,10 @@ class ReadFunction {
   static void evaluate(Context* context) {
     Text* string = new Text();
     Text* name = context->EvaluateArgument(1);
-    if (!string->read(name)) {
+    if (!string->ReadFromFile(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
-    g_the_output->append(string);
+    g_the_output->AddToString(string);
     delete string;
   }
 };
@@ -872,7 +872,7 @@ class RepFunction {
     // Node* n = context->first_->next_;
     Text* value = context->EvaluateArgument(1);
     for (number num = context->evalNumber(2); num > 0; num -= 1) {
-        g_the_output->append(value);
+        g_the_output->AddToString(value);
     }
   }
 };
@@ -918,10 +918,10 @@ class SlashifyFunction {
                 case '\\':  // backslash
                 case '\'':  // single quote
                 case  '"':  // double quote
-                    g_the_output->append('\\');
+                    g_the_output->AddToString('\\');
                     break;
             }
-            g_the_output->append(c);
+            g_the_output->AddToString(c);
         }
     }
   }
@@ -982,7 +982,7 @@ class SubstrFunction {
             ber = context->evalNumber(n);
         }
         if (num >= 0 && ber > 0) {
-            g_the_output->append(
+            g_the_output->AddToString(
                 context->EvaluateArgument(1)->utfSubstr(static_cast<int>(num),
                                                static_cast<int>(ber)));
         }
@@ -1003,7 +1003,7 @@ class TrimFunction {
   static void evaluate(Context* context) {
     Node* n = context->first_->next_;
     while (n) {
-        g_the_output->trim(context->EvaluateArgument(n));
+        g_the_output->RemoveSpacesAddToString(context->EvaluateArgument(n));
         n = n->next_;
     }
   }
@@ -1026,19 +1026,19 @@ class UnicodeFunction {
         if (num >= 0) {
             int i = static_cast<int>(num);
             if (i <= 0x7F) {
-                g_the_output->append(i);
+                g_the_output->AddToString(i);
             } else if (i <= 0x7FF) {
-                g_the_output->append(0xC000 |  (i >> 6));
-                g_the_output->append(0x8000 |  (i        & 0x3F));
+                g_the_output->AddToString(0xC000 |  (i >> 6));
+                g_the_output->AddToString(0x8000 |  (i        & 0x3F));
             } else if (i <= 0xFFFF) {
-                g_the_output->append(0xE000 |  (i >> 12));
-                g_the_output->append(0x8000 | ((i >> 6)  & 0x3F));
-                g_the_output->append(0x8000 |  (i        & 0x3F));
+                g_the_output->AddToString(0xE000 |  (i >> 12));
+                g_the_output->AddToString(0x8000 | ((i >> 6)  & 0x3F));
+                g_the_output->AddToString(0x8000 |  (i        & 0x3F));
             } else {
-                g_the_output->append(0xF000 |  (i >> 18));
-                g_the_output->append(0x8000 | ((i >> 12) & 0x3F));
-                g_the_output->append(0x8000 | ((i >> 6)  & 0x3F));
-                g_the_output->append(0x8000 |  (i        & 0x3F));
+                g_the_output->AddToString(0xF000 |  (i >> 18));
+                g_the_output->AddToString(0x8000 | ((i >> 12) & 0x3F));
+                g_the_output->AddToString(0x8000 | ((i >> 6)  & 0x3F));
+                g_the_output->AddToString(0x8000 |  (i        & 0x3F));
             }
         } else {
             context->ReportErrorAndDie(
@@ -1062,7 +1062,7 @@ class WriteFunction {
 
   static void evaluate(Context* context) {
     Text* name = context->EvaluateArgument(1);
-    if (!context->EvaluateArgument(2)->write(name)) {
+    if (!context->EvaluateArgument(2)->WriteToFile(name)) {
       context->ReportErrorAndDie("Error in writing file", name);
     }
   }

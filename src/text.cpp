@@ -86,8 +86,8 @@ Text::~Text() {
 
 // append character (8-bit)
 
-void Text::append(int c) {
-    checkMaxLength(1);
+void Text::AddToString(int c) {
+    CheckLengthAndIncrease(1);
     string_[length_] = static_cast<char>(c);
     length_ += 1;
     my_hash_ = 0;
@@ -96,8 +96,8 @@ void Text::append(int c) {
 
 // append characters
 
-void Text::append(int c, int n) {
-    checkMaxLength(n);
+void Text::AddToString(int c, int n) {
+    CheckLengthAndIncrease(n);
     while (n > 0) {
         string_[length_] = static_cast<char>(c);
         length_ += 1;
@@ -109,18 +109,18 @@ void Text::append(int c, int n) {
 
 // append c-string
 
-void Text::append(const char* s) {
+void Text::AddToString(const char* s) {
     if (s) {
-        append(s, static_cast<int>(strlen(s)));
+        AddToString(s, static_cast<int>(strlen(s)));
     }
 }
 
 
 // append string
 
-void Text::append(const char* s, int len) {
+void Text::AddToString(const char* s, int len) {
     if (s && len) {
-        checkMaxLength(len);
+        CheckLengthAndIncrease(len);
         memmove(&string_[length_], s, len);
         length_ += len;
         my_hash_ = 0;
@@ -130,27 +130,27 @@ void Text::append(const char* s, int len) {
 
 // append text
 
-void Text::append(Text* t) {
+void Text::AddToString(Text* t) {
     if (t) {
-        append(t->string_, t->length_);
+        AddToString(t->string_, t->length_);
     }
 }
 
 
 // append number
 
-void Text::appendNumber(number n) {
+void Text::AddNumberToString(number n) {
     number d;
     if (n != NAN) {
         if (n < 0) {
-            append('-');
+            AddToString('-');
             n = -n;
         }
         d = n / 10;
         if (d > 0) {
-            appendNumber(d);
+            AddNumberToString(d);
         }
-        append(static_cast<int>((n % 10) + '0'));
+        AddToString(static_cast<int>((n % 10) + '0'));
         my_hash_ = 0;
     }
 }
@@ -160,7 +160,7 @@ void Text::appendNumber(number n) {
 //  then increase the size of the string. The new allocation will be at least
 //  twice the previous allocation.
 
-void Text::checkMaxLength(int len) {
+void Text::CheckLengthAndIncrease(int len) {
     int newMaxLength;
     int req = length_ + len;
     if (max_length_ < req) {
@@ -330,7 +330,7 @@ void Text::ReadStdInput() {
         if (len <= 0) {
             break;
         }
-        append(buffer, len);
+        AddToString(buffer, len);
     }
 }
 
@@ -440,14 +440,14 @@ bool Text::ltStr(Text* t) {
 
 // write to standard output
 
-void Text::output() {
+void Text::WriteStdOutput() {
     fwrite(string_, sizeof(char), length_, stdout);
 }
 
 
 //  read filename -- read the file in 10K chunks.
 
-bool Text::read(Text* filename) {
+bool Text::ReadFromFile(Text* filename) {
   FILE *fp;
   char buffer[10240];
   int len;
@@ -469,7 +469,7 @@ bool Text::read(Text* filename) {
       if (len <= 0) {
           break;
       }
-      append(buffer, len);
+      AddToString(buffer, len);
     }
     fclose(fp);
     return true;
@@ -481,7 +481,7 @@ bool Text::read(Text* filename) {
 
 // set text
 
-void Text::setString(Text* t) {
+void Text::set_string(Text* t) {
     my_hash_ = 0;
     if (t && t->length_) {
         length_ = t->length_;
@@ -499,14 +499,14 @@ void Text::setString(Text* t) {
 
 // set name with c-string
 
-void Text::setName(const char* s) {
-    setName(s, static_cast<int>(strlen(s)));
+void Text::set_name(const char* s) {
+    set_name(s, static_cast<int>(strlen(s)));
 }
 
 
 // set name with string
 
-void Text::setName(const char* s, int len) {
+void Text::set_name(const char* s, int len) {
     delete name_;
     name_length_ = len;
     name_ = new char[name_length_];
@@ -516,8 +516,8 @@ void Text::setName(const char* s, int len) {
 
 // set name with text
 
-void Text::setName(Text* t) {
-    setName(t->string_, t->length_);
+void Text::set_name(Text* t) {
+    set_name(t->string_, t->length_);
 }
 
 
@@ -546,14 +546,14 @@ Text* Text::tail(int index) {
 // trim is like append, except that it trims leading, trailing spaces, and
 // reduces runs of whitespace to single space
 
-void Text::trim(Text* t) {
+void Text::RemoveSpacesAddToString(Text* t) {
     char* s = t->string_;
     int l = t->length_;
     int i = 0;
     bool b = false;
     for (;;) {
         while (s[i] > ' ') {
-            append(s[i]);
+            AddToString(s[i]);
             b = true;
             i += 1;
             if (i >= l) {
@@ -567,7 +567,7 @@ void Text::trim(Text* t) {
             }
         } while (s[i] <= ' ');
         if (b) {
-            append(' ');
+            AddToString(' ');
         }
     }
 }
@@ -646,18 +646,18 @@ Text* Text::utfSubstr(int start, int len) {
     while (len && i < length_) {
         c = string_[i] & 0xFF;
         i += 1;
-        t->append(c);
+        t->AddToString(c);
         if (c >= 0xC0) {
             if (c < 0xE0) {  // 2-byte form
                 if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
-                    t->append(string_[i]);
+                    t->AddToString(string_[i]);
                     i += 1;
                 }
             } else if (c < 0xF0) {  // 3-byte form
                 if ((i + 2) < length_ &&
                         ((string_[i]     & 0xC0) == 0x80) &&
                         ((string_[i + 1] & 0xC0) == 0x80)) {
-                    t->append(&string_[i], 2);
+                    t->AddToString(&string_[i], 2);
                     i += 2;
                 }
             } else {  // 4-byte form
@@ -665,7 +665,7 @@ Text* Text::utfSubstr(int start, int len) {
                         ((string_[i]     & 0xC0) == 0x80) &&
                         ((string_[i + 1] & 0xC0) == 0x80) &&
                         ((string_[i + 2] & 0xC0) == 0x80)) {
-                    t->append(&string_[i], 3);
+                    t->AddToString(&string_[i], 3);
                     i += 3;
                 }
             }
@@ -678,7 +678,7 @@ Text* Text::utfSubstr(int start, int len) {
 
 // write filename
 
-bool Text::write(Text* filename) {
+bool Text::WriteToFile(Text* filename) {
     FILE *fp;
     char fname[256];
     memmove(fname, filename->string_, filename->length_);
@@ -710,7 +710,7 @@ bool Text::write(Text* filename) {
   c -= a; c -= b; c ^= (b >> 15); \
 }
 
-uint32 Text::hash() {
+uint32 Text::Hash() {
     if (my_hash_) {
         return my_hash_;  // If we have already memoized the hash, use it.
     }

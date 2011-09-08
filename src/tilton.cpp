@@ -98,12 +98,12 @@ void MacroProcessor::Run(bool go) {
   // Process the input
   if (go) {
     in_->ReadStdInput();
-    in_->setName("[standard input]");
+    in_->set_name("[standard input]");
     top_frame_->eval(in_);
   }
 
   // and finally
-  g_the_output->output();
+  g_the_output->WriteStdOutput();
 }
 
 // Singleton implementation for macro list
