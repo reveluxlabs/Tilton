@@ -48,7 +48,7 @@ class Text {
   number  getNumber();
   uint32  hash();
   int     indexOf(Text* t);
-  
+
   // ReadStdInput
   // Read from stdin and append to string
   void    ReadStdInput();

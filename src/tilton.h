@@ -47,6 +47,7 @@ typedef unsigned      char uint8;    /* unsigned 1-byte quantities */
 class Context;
 class Text;
 class OptionProcessor;
+class SearchList;
 
 // MacroProcessor -- coordinator for macro processing
 
@@ -72,6 +73,33 @@ class MacroProcessor {
   Text*                             in_;
   Text*                             the_output_;
   std::map<char, OptionProcessor*>  option_processors_;
+};
+
+// MacroTable -- singleton to hold the macro table
+
+class MacroTable {
+ public:
+   MacroTable();
+   virtual ~MacroTable();
+
+   static MacroTable* instance();
+
+  // macro_table
+  // Retrieve the macro table
+  SearchList* macro_table() {
+    return macro_table_;
+  }
+
+  // set_macro_table
+  // Store a new value for macro_table
+  void set_macro_table(SearchList* mt) {
+    macro_table_ = mt;
+  }
+
+ private:
+  static MacroTable*  pInstance;
+  SearchList*         macro_table_;
+
 };
 
 #endif  // SRC_TILTON_H_

@@ -29,15 +29,10 @@
 #include "node.h"
 
 extern Text* g_the_output;
-extern SearchList* g_macro_table;
 
-OptionProcessor::OptionProcessor() {
-  
-}
+OptionProcessor::OptionProcessor() {}
 
-OptionProcessor::~OptionProcessor() {
-  
-}
+OptionProcessor::~OptionProcessor() {}
 
 bool OptionProcessor::ProcessOption(int argc, const char **argv,
                                     const char *arg, int &cmd_arg,
@@ -166,7 +161,7 @@ bool SetProcessor::ProcessOption(int argc, const char * argv[],
     cmd_arg += 1;
     string = new Text(argv[cmd_arg]);
     cmd_arg += 1;
-    g_macro_table->install(name, string);
+    MacroTable::instance()->macro_table()->install(name, string);
     delete name;
     delete string;
   } else {

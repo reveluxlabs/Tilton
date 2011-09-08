@@ -29,7 +29,6 @@
 #include "function.h"
 #include "option.h"
 
-SearchList* g_macro_table = new SearchList();
 Text* g_the_output = NULL;
 
 MacroProcessor::MacroProcessor() {
@@ -43,12 +42,10 @@ MacroProcessor::~MacroProcessor() {
   delete in_;
   delete the_output_;
 
-  while( option_processors_.begin() != option_processors_.end() )
-  {
+  while ( option_processors_.begin() != option_processors_.end() ) {
     delete option_processors_.begin()->second;
-    option_processors_.erase( option_processors_.begin() );
+    option_processors_.erase(option_processors_.begin());
   }
-
 }
 
 void MacroProcessor::CreateOptionProcessors() {
@@ -79,17 +76,17 @@ bool MacroProcessor::ProcessCommandLine(int argc, const char* *argv) {
     cmd_arg += 1;
 
     if (arg[0] == '-') {  // args
-      iter = option_processors_.find( arg[1] );
-      if( iter != option_processors_.end() ) {  // valid arg
+      iter = option_processors_.find(arg[1]);
+      if ( iter != option_processors_.end() ) {  // valid arg
         go = iter->second->ProcessOption(argc, argv, arg, cmd_arg,
                                          frame_arg, top_frame_, in_);
       } else {  // digit arg or invalid
-        iter = option_processors_.find( 'd' );
+        iter = option_processors_.find('d');
         go = iter->second->ProcessOption(argc, argv, arg, cmd_arg,
                                          frame_arg, top_frame_, in_);
       }
     } else {  // parameter, stuff it into the next slot in the frame
-        iter = option_processors_.find( 'p' );
+        iter = option_processors_.find('p');
         go = iter->second->ProcessOption(argc, argv, arg, cmd_arg,
                                          frame_arg, top_frame_, in_);
     }
@@ -109,6 +106,25 @@ void MacroProcessor::Run(bool go) {
   g_the_output->output();
 }
 
+// Singleton implementation for macro list
+
+MacroTable::MacroTable() {
+  macro_table_ = new SearchList();
+}
+
+MacroTable::~MacroTable() {
+  delete macro_table_;
+}
+
+MacroTable* MacroTable::pInstance = 0;
+
+MacroTable* MacroTable::instance() {
+  if ( pInstance == 0 ) {
+    pInstance = new MacroTable;
+  }
+  return pInstance;
+}
+
 // main
 // Registers the built-ins, processes the command line arguments and
 // evaluates the standard input.
@@ -117,11 +133,10 @@ int main(int argc, const char * argv[]) {
   bool should_go                   = true;
   g_the_output                     = new Text(1024);
   MacroProcessor* tilton_processor = new MacroProcessor;
-  FunctionContext* builtins        = new FunctionContext;
 
   tilton_processor->CreateOptionProcessors();
-  
-  builtins->RegisterTiltonFunctions(g_macro_table);
+
+  FunctionContext::RegisterTiltonFunctions();
 
   should_go = tilton_processor->ProcessCommandLine(argc, argv);
 

@@ -39,8 +39,6 @@
 #include "text.h"
 
 extern Text* g_the_output;
-extern SearchList* g_macro_table;
-
 
 Context::Context(Context* prev, Iter* s) {
     position_ = 0;
@@ -258,7 +256,7 @@ void Context::ExpandMacro(Context* &new_context) {
     Text* name;
 
     name = new_context->EvaluateArgument(0);
-    macro = g_macro_table->lookup(name);
+    macro = MacroTable::instance()->macro_table()->lookup(name);
     if (macro) {
         if (macro->function_) {
             macro->function_(new_context);
@@ -339,11 +337,6 @@ Node* Context::GetArgument(int argNr) {
     argNr -= 1;
   }
 }
-
-
-//void Context::nop() {
-//}
-
 
 void Context::resetArg(int argNr) {
   Node* n;

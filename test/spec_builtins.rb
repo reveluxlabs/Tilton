@@ -425,7 +425,7 @@ it "should process the include builtin with null args" do
     # execute SUT
     result = %x[ echo "<~tilton~>" | ./tilton ]
     # verify results
-    result.should.equal "0\n"
+    result.should.equal "0.7\n"
   end
 
   it "should process the trim builtin" do
