@@ -68,6 +68,17 @@ class MacroProcessor {
   // Read the standard input and expand the macros, write to standard out
   void Run(bool go);
 
+  // the_output
+  // Retrieve the output string
+  Text* the_output() {
+    return the_output_;
+  }
+  
+  // set_the_output
+  // Store a new value for the_output
+  void set_the_output(Text* t) {
+    the_output_ = t;
+  }
  private:
   Context*                          top_frame_;
   Text*                             in_;

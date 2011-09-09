@@ -26,7 +26,7 @@
 
 class Context;
 
-typedef void (*Builtin)(Context* context);
+typedef void (*Builtin)(Context* context, Text* the_output);
 
 class Text {
  public:
@@ -49,7 +49,7 @@ class Text {
   // appends a number to the string wrapped by Text
   void    AddNumberToString(number);
   
-  void    dump();
+  void    PrintTextList();
   int     getChar(int index);
   number  getNumber();
   

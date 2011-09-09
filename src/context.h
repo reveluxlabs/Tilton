@@ -56,17 +56,17 @@ class Context {
   //  in the new context as argument strings. Any nested <~ ~> sequences within
   //  the arguments are treated for now as literal (lazy evaluation). The [0]
   //  argument is the name of the macro to be invoked.
-  void    eval(Text* input);
+  void    eval(Text* input, Text* the_output);
 
   // EvaluateArgument
   // Evaluate an argument of a macro. If we have already determined its
   // value, then simply return it. Otherwise, evaluate the argument to obtain
   // its value (memoization).
-  Text*   EvaluateArgument(int argNr);
-  Text*   EvaluateArgument(Node* n);
+  Text*   EvaluateArgument(int argNr, Text* the_output);
+  Text*   EvaluateArgument(Node* n, Text* the_output);
 
-  number  evalNumber(int argNr);
-  number  evalNumber(Node* n);
+  number  evalNumber(int argNr, Text* the_output);
+  number  evalNumber(Node* n, Text* the_output);
 
   // GetArgument
   // Retrieves an argument
@@ -87,23 +87,23 @@ class Context {
  private:
   // FindError
   // Recurse through the stack frames to find the location of the error
-  void    FindError(Text* report);
+  void FindError(Text* report);
 
   // EvaluateLeftAngle
   // Parse and eval the text following a left angle bracket
-  void EvaluateLeftAngle(Iter* in, int &depth, Text* g_the_output,
+  void EvaluateLeftAngle(Iter* in, int &depth, Text* the_output,
                          int &tildes_seen, Context* &new_context);
 
   // EvaluateTilde
-  void EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
+  void EvaluateTilde(Iter* in, int &depth, Text* the_output,
                      int &tildes_seen, Context* &new_context);
 
   // EvaluateEOT
-  void EvaluateEOT(Iter* in, int &depth, Text* g_the_output,
+  void EvaluateEOT(Iter* in, int &depth, Text* the_output,
                    int &tildes_seen, Context* &new_context);
 
   // ExpandMacro
-  void ExpandMacro(Context* &new_context);
+  void ExpandMacro(Context* &new_context, Text* the_output);
 
   // stackEmpty
   // Tests to determine if the eval stack is empty
@@ -132,7 +132,7 @@ class Context {
   // EvalTextForArg
   // Evaluate a text and produce a value, store in an argument
   Node* EvalTextForArg(int arg_number, Context* &new_context,
-                       Text* &g_the_output);
+                       Text* &the_output);
 
   // setMacroVariable
   // Sets a digit macro to a value

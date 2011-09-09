@@ -177,7 +177,7 @@ void Text::CheckLengthAndIncrease(int len) {
 }
 
 
-void Text::dump() {
+void Text::PrintTextList() {
     Text* t = this;
     while (t) {
         fwrite(t->name_, sizeof(char), t->name_length_, stderr);

@@ -38,8 +38,6 @@
 #include "tilton.h"
 #include "text.h"
 
-extern Text* g_the_output;
-
 Context::Context(Context* prev, Iter* s) {
     position_ = 0;
     first_ = NULL;
@@ -113,7 +111,7 @@ void Context::ReportErrorAndDie(const char* reason, Text* evidence) {
 
 // Eval is the heart of Tilton, see comment in context.h
 // It is currently being refactored towards the command pattern.
-void Context::eval(Text* input) {
+void Context::eval(Text* input, Text* the_output) {
   int c;                 // current character
   int depth = 0;         // depth of nested <~ ~>
   int tildes_seen= 0;     // the number of tildes in the separator ~~~
@@ -125,24 +123,24 @@ void Context::eval(Text* input) {
   for (;;) {
     switch ((c = in->next())) {
       case '<':
-        this->EvaluateLeftAngle(in, depth, g_the_output,
+        this->EvaluateLeftAngle(in, depth, the_output,
                                 tildes_seen, new_context);
         break;
       case '~':
-        this->EvaluateTilde(in, depth, g_the_output, tildes_seen, new_context);
+        this->EvaluateTilde(in, depth, the_output, tildes_seen, new_context);
         break;
       case EOT:
-        this->EvaluateEOT(in, depth, g_the_output, tildes_seen, new_context);
+        this->EvaluateEOT(in, depth, the_output, tildes_seen, new_context);
         return;
       // literal character
       default:
-        g_the_output->addToString(c);
+        the_output->addToString(c);
         break;
     }
   }
 }
 
-void Context::EvaluateLeftAngle(Iter* in, int &depth, Text* g_the_output,
+void Context::EvaluateLeftAngle(Iter* in, int &depth, Text* the_output,
                         int &tildes_seen, Context* &new_context) {
   int run_length;  // the number of tildes currently under consideration
 
@@ -152,19 +150,19 @@ void Context::EvaluateLeftAngle(Iter* in, int &depth, Text* g_the_output,
     if (haveTildes(run_length)) {  // found embedded macro bracket
         depth += 1;
     }
-    g_the_output->addToString('<');
-    g_the_output->addToString('~', run_length);
+    the_output->addToString('<');
+    the_output->addToString('~', run_length);
   } else if (haveTildes(run_length)) {  // found first macro bracket
     depth = 1;
     tildes_seen = run_length;
     new_context = new Context(this, in);
-    new_context->position_ = g_the_output->length_;
+    new_context->position_ = the_output->length_;
   } else {  // left angle in the middle of text being passed through
-    g_the_output->addToString('<');
+    the_output->addToString('<');
   }
 }
 
-void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
+void Context::EvaluateTilde(Iter* in, int &depth, Text* the_output,
                         int &tildes_seen, Context* &new_context) {
   int arg_number;    // argument number
   Node* arg;         // current arg
@@ -176,7 +174,7 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
   // if in middle of expansion and tildes seen, create args for each
   if (depth == 1 && run_length >= tildes_seen) {
     new_context->AddArgument(
-        g_the_output->removeFromString(new_context->position_));
+        the_output->removeFromString(new_context->position_));
     for (;;) {
       run_length -= tildes_seen;
       if (run_length < tildes_seen) {
@@ -187,7 +185,7 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
   }
 
   // pass through tildes in plain text
-  g_the_output->addToString('~', run_length);
+  the_output->addToString('~', run_length);
 
   // if we have seen the closing bracket
   if (in->peek() == '>') {
@@ -196,7 +194,7 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
     if (!stackEmpty(depth)) {
       depth -= 1;
       if (!stackEmpty(depth)) {
-          g_the_output->addToString('>');
+          the_output->addToString('>');
       } else {
         if (run_length) {
           new_context->ReportErrorAndDie("Short ~>");
@@ -210,12 +208,12 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
           arg_number = arg_text->ConvertAlphaToInteger();
           if (arg_number >= 0) {
             if (!arg->next_) {
-              g_the_output->addToString(this->EvaluateArgument(arg_number));
+              the_output->addToString(this->EvaluateArgument(arg_number, the_output));
             } else {
               //    <~NUMBER~value~>
               arg = new_context->GetArgument(arg_number);
               if (!arg->hasValue()) {
-                arg = this->EvalTextForArg(1, new_context, g_the_output);
+                arg = this->EvalTextForArg(1, new_context, the_output);
               }
               this->SetMacroVariable(arg_number, arg->value_);
             }
@@ -224,7 +222,7 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
           }
         }
         //    look up
-        Context::ExpandMacro(new_context);
+        Context::ExpandMacro(new_context, the_output);
       }
     } else {
       (new Context(this, in))->ReportErrorAndDie("Extra ~>");
@@ -233,11 +231,11 @@ void Context::EvaluateTilde(Iter* in, int &depth, Text* g_the_output,
 }
 
 Node* Context::EvalTextForArg(int arg_number, Context* &new_context,
-                             Text* &g_the_output) {
+                             Text* &the_output) {
   Node* n;
   n = new_context->GetArgument(arg_number);
-  this->eval(n->text_);
-  n->value_ = g_the_output->removeFromString(new_context->position_);
+  this->eval(n->text_, the_output);
+  n->value_ = the_output->removeFromString(new_context->position_);
   return n;
 }
 
@@ -251,17 +249,17 @@ void Context::SetMacroVariable(int varNo, Text* t) {
   o->value_ = new Text(t);
 }
 
-void Context::ExpandMacro(Context* &new_context) {
+void Context::ExpandMacro(Context* &new_context, Text* the_output) {
     Text* macro;
     Text* name;
 
-    name = new_context->EvaluateArgument(0);
-    macro = MacroTable::instance()->macro_table()->lookup(name);
+    name = new_context->EvaluateArgument(0, the_output);
+    macro = MacroTable::instance()->macro_table()->LookupMacro(name);
     if (macro) {
         if (macro->function_) {
-            macro->function_(new_context);
+            macro->function_(new_context, the_output);
         } else {
-            new_context->eval(macro);
+            new_context->eval(macro, the_output);
         }
     } else {
         //    undefined
@@ -271,7 +269,7 @@ void Context::ExpandMacro(Context* &new_context) {
     new_context = NULL;
 }
 
-void Context::EvaluateEOT(Iter* in, int &depth, Text* g_the_output,
+void Context::EvaluateEOT(Iter* in, int &depth, Text* the_output,
                       int &tildes_seen, Context* &new_context) {
     if (!stackEmpty(depth)) {
         new_context->ReportErrorAndDie("Missing ~>");
@@ -279,12 +277,12 @@ void Context::EvaluateEOT(Iter* in, int &depth, Text* g_the_output,
     delete in;
 }
 
-Text* Context::EvaluateArgument(int argNr) {
-    return EvaluateArgument(GetArgument(argNr));
+Text* Context::EvaluateArgument(int argNr, Text* the_output) {
+    return EvaluateArgument(GetArgument(argNr), the_output);
 }
 
 
-Text* Context::EvaluateArgument(Node* n) {
+Text* Context::EvaluateArgument(Node* n, Text* the_output) {
   if (n == NULL) {
       return NULL;
   }
@@ -293,26 +291,26 @@ Text* Context::EvaluateArgument(Node* n) {
       return NULL;
     }
     Text* arg = n->text_;
-    int position_ = g_the_output->length_;
-    this->previous_->eval(arg);
-    n->value_ = g_the_output->removeFromString(position_);
+    int position_ = the_output->length_;
+    this->previous_->eval(arg, the_output);
+    n->value_ = the_output->removeFromString(position_);
   }
   return n->value_;
 }
 
 
-number Context::evalNumber(int argNr) {
-  return evalNumber(GetArgument(argNr));
+number Context::evalNumber(int argNr, Text* the_output) {
+  return evalNumber(GetArgument(argNr), the_output);
 }
 
 
-number Context::evalNumber(Node* n) {
+number Context::evalNumber(Node* n, Text* the_output) {
   if (!n) {
     return 0;
   }
-  number num = EvaluateArgument(n)->getNumber();
+  number num = EvaluateArgument(n, the_output)->getNumber();
   if (num == NAN) {
-    ReportErrorAndDie("Not a number", EvaluateArgument(n));
+    ReportErrorAndDie("Not a number", EvaluateArgument(n, the_output));
   }
   return num;
 }

@@ -46,7 +46,7 @@ void SearchList::set_the_macro_list(uint32 h, Text* t) {
     the_macro_list_[h] = t;
 }
 
-void SearchList::link(Text* name, Text* t) {
+void SearchList::InsertIntoSearchList(Text* name, Text* t) {
     uint32 h = name->Hash() & MAXHASH;
     t->set_name(name);
     t->link_ = SearchList::the_macro_list(h);
@@ -56,27 +56,27 @@ void SearchList::link(Text* name, Text* t) {
 //  addFunction is used by main to add primitive functions to tilton.
 //  A function operates on a context which supplies the parameters.
 
-void SearchList::install(const char* namestring, void (*function)(Context * )) {
+void SearchList::InstallMacro(const char* namestring, void (*function)(Context *, Text * )) {
     Text* t = new Text();
     Text* name = new Text(namestring);
-    SearchList::link(name, t);
+    SearchList::InsertIntoSearchList(name, t);
     t->function_ = function;
     delete name;
 }
 
-//  addMacro -- This is a little faster than install() because it assumes that
+//  addMacro -- This is a little faster than InstallMacro() because it assumes that
 //  the name is not already in the macro list.
 
-void SearchList::install(const char* namestring, const char* string) {
+void SearchList::InstallMacro(const char* namestring, const char* string) {
     Text* name = new Text(namestring);
-    SearchList::link(name, new Text(string));
+    SearchList::InsertIntoSearchList(name, new Text(string));
     delete name;
 }
 
 //  lookup - search through the macro list for a text with a specific name.
 //  The list is a hash table with links for collisions.
 
-Text* SearchList::lookup(Text* name) {
+Text* SearchList::LookupMacro(Text* name) {
     Text* t = SearchList::the_macro_list(name->Hash() & MAXHASH);
     while (t) {
         if (t->isName(name)) {
@@ -92,27 +92,27 @@ Text* SearchList::lookup(Text* name) {
 //  value. Otherwise, make a new text with this name and value and put
 //  it in the list.
 
-void SearchList::install(Text* name, Text* value) {
-    Text* t = SearchList::lookup(name);
+void SearchList::InstallMacro(Text* name, Text* value) {
+    Text* t = SearchList::LookupMacro(name);
     if (t) {
         t->set_string(value);
     } else {
-        SearchList::link(name, new Text(value));
+        SearchList::InsertIntoSearchList(name, new Text(value));
     }
 }
 
-void SearchList::dump() {
+void SearchList::PrintMacroTable() {
     int i;
     for (i = 0; i < (MAXHASH + 1); i += 1) {
         Text* macro = SearchList::the_macro_list(i);
         if (macro) {
-            macro->dump();
+            macro->PrintTextList();
         }
     }
 }
 
-Text* SearchList::getDef(Text* name) {
-    Text* t = SearchList::lookup(name);
+Text* SearchList::GetMacroDefOrInsertNull(Text* name) {
+    Text* t = SearchList::LookupMacro(name);
     if (!t) {
         t = new Text(0);
         uint32 h = name->Hash() & MAXHASH;

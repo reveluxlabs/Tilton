@@ -29,8 +29,6 @@
 #include "function.h"
 #include "option.h"
 
-Text* g_the_output = NULL;
-
 MacroProcessor::MacroProcessor() {
   top_frame_  = new Context(NULL, NULL);
   in_         = new Text();
@@ -79,16 +77,16 @@ bool MacroProcessor::ProcessCommandLine(int argc, const char* *argv) {
       iter = option_processors_.find(arg[1]);
       if ( iter != option_processors_.end() ) {  // valid arg
         go = iter->second->ProcessOption(argc, argv, arg, cmd_arg,
-                                         frame_arg, top_frame_, in_);
+                                         frame_arg, top_frame_, in_, the_output_);
       } else {  // digit arg or invalid
         iter = option_processors_.find('d');
         go = iter->second->ProcessOption(argc, argv, arg, cmd_arg,
-                                         frame_arg, top_frame_, in_);
+                                         frame_arg, top_frame_, in_, the_output_);
       }
     } else {  // parameter, stuff it into the next slot in the frame
         iter = option_processors_.find('p');
         go = iter->second->ProcessOption(argc, argv, arg, cmd_arg,
-                                         frame_arg, top_frame_, in_);
+                                         frame_arg, top_frame_, in_, the_output_);
     }
   }
   return go;
@@ -99,11 +97,11 @@ void MacroProcessor::Run(bool go) {
   if (go) {
     in_->ReadStdInput();
     in_->set_name("[standard input]");
-    top_frame_->eval(in_);
+    top_frame_->eval(in_, the_output_);
   }
 
   // and finally
-  g_the_output->WriteStdOutput();
+  the_output_->WriteStdOutput();
 }
 
 // Singleton implementation for macro list
@@ -131,9 +129,9 @@ MacroTable* MacroTable::instance() {
 
 int main(int argc, const char * argv[]) {
   bool should_go                   = true;
-  g_the_output                     = new Text(1024);
-  MacroProcessor* tilton_processor = new MacroProcessor;
 
+  MacroProcessor* tilton_processor = new MacroProcessor;
+  
   tilton_processor->CreateOptionProcessors();
 
   FunctionContext::RegisterTiltonFunctions();
