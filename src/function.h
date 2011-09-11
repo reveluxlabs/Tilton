@@ -21,25 +21,53 @@
 #ifndef SRC_FUNCTION_H_
 #define SRC_FUNCTION_H_
 
+#include <map>
+#include <string>
+
 #include "tilton.h"
 #include "search.h"
 #include "context.h"
 #include "node.h"
+#include "macro.h"
+
 
 // FunctionContext -- collection of functions available as built-ins
 class FunctionContext {
  public:
   // Constructor
   FunctionContext();
-
-  // Destructor
   virtual ~FunctionContext();
-
+  
+  static FunctionContext* instance();
+  
+  std::map<std::string, Builtin>& functions() {
+    static std::map<std::string, Builtin>  functions_;
+    return functions_;
+  }
+  
   // registerTiltonFunctions
   // Register the built-in functions for use in Tilton
-  static void RegisterTiltonFunctions();
+  void RegisterTiltonFunctions();
 
+  Builtin GetFunction(std::string name) {
+    it_ = functions().find(name);
+    if (it_ != functions().end()) {
+      return it_->second;
+    } else {
+      return NULL;
+    }
+  }
+  
  private:
+  void RegisterFunction(std::string name, Builtin function) {
+    functions().insert(std::make_pair(name, function));
+  }
+  
+  static FunctionContext*  pInstance;
+  
+  // Container for built ins  
+//  std::map<std::string, Builtin>  functions_;
+  std::map<std::string, Builtin>::const_iterator it_;
 };
 
 class ArithmeticFunction {
@@ -51,11 +79,11 @@ class ArithmeticFunction {
   // Reduce a list of parameters to a single value. This is used
   // to implement the tilton arithmetic functions.
   static void reduce(Context* context, number num,
-                     number (*f)(number, number), Text* the_output) {
+                     number (*f)(number, number), Text* &the_output) {
      Node* n = context->first_->next_;
      if (n) {
          if (num == NAN) {
-             num = context->evalNumber(n, the_output);
+             num = context->EvaluateNumber(n, the_output);
              n = n->next_;
          }
          if (n) {
@@ -63,7 +91,7 @@ class ArithmeticFunction {
                  if (!n) {
                      break;
                  }
-                 number d = context->evalNumber(n, the_output);
+                 number d = context->EvaluateNumber(n, the_output);
                  if (num == NAN || d == NAN) {
                      num = NAN;
                      break;
@@ -103,7 +131,7 @@ class BooleanFunction {
   virtual ~BooleanFunction();
 
   //  test - This is used to implement the tilton binary conditional functions.
-  static void test(Context* context, int (*f)(Text*, Text*), Text* the_output) {
+  static void test(Context* context, int (*f)(Text*, Text*), Text* &the_output) {
      Node* c;
      Node* t;
      Node* s = context->first_->next_;
@@ -138,7 +166,7 @@ class BooleanFunction {
   }
 
   static int eq(Text* first, Text* second) {
-     return first->is(second);
+     return first->IsEqual(second);
   }
 
   static int ge(Text* first, Text* second) {
@@ -158,7 +186,7 @@ class BooleanFunction {
   }
 
   static int ne(Text* first, Text* second) {
-     return !(first->is(second));
+     return !(first->IsEqual(second));
   }
 };
 
@@ -168,7 +196,7 @@ class AddFunction: public ArithmeticFunction {
   AddFunction();
   virtual ~AddFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     ArithmeticFunction::reduce(context, 0, ArithmeticFunction::add, the_output);
   }
 };
@@ -179,7 +207,7 @@ class AndFunction {
   AndFunction();
   virtual ~AndFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     Text* t = NULL;
     while (n) {
@@ -199,7 +227,7 @@ class AppendFunction {
   AppendFunction();
   virtual ~AppendFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     if (n == NULL) {
         context->ReportErrorAndDie("Missing name");
@@ -209,7 +237,7 @@ class AppendFunction {
         context->ReportErrorAndDie("Missing name");
     }
 
-    Text* t = MacroTable::instance()->macro_table()->GetMacroDefOrInsertNull(name);
+    Macro* t = MacroTable::instance()->macro_table()->GetMacroDefOrInsertNull(name);
 
     for (;;) {
         n = n->next_;
@@ -227,15 +255,15 @@ class DefineFunction {
   DefineFunction();
   virtual ~DefineFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     int position = the_output->length_;
-    the_output->AddToString(context->GetArgument(2)->text_);
-    Text* name = context->EvaluateArgument(1, the_output);
+    the_output->AddToString(context->GetArgument(ArgTwo)->text_);
+    Text* name = context->EvaluateArgument(ArgOne, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
     MacroTable::instance()->macro_table()->
-      InstallMacro(name, the_output->tail(position));
+      InstallMacro(name, the_output->RemoveFromString(position));
   }
 };
 
@@ -245,11 +273,11 @@ class DefinedFunction {
   DefinedFunction();
   virtual ~DefinedFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
   the_output->AddToString(
       context->EvaluateArgument(
         MacroTable::instance()->macro_table()->
-        LookupMacro(context->EvaluateArgument(1, the_output)) ? 2 : 3, the_output));
+        LookupMacro(context->EvaluateArgument(ArgOne, the_output)) ? ArgTwo : ArgThree, the_output));
   }
 };
 
@@ -259,14 +287,14 @@ class DeleteFunction {
   DeleteFunction();
   virtual ~DeleteFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
   Node* n = context->first_->next_;
   while (n) {
     Text* name = context->EvaluateArgument(n, the_output);
-    Text* t = MacroTable::instance()->macro_table()->LookupMacro(name);
-    Text* u = NULL;
+    Macro* t = MacroTable::instance()->macro_table()->LookupMacro(name);
+    Macro* u = NULL;
     while (t) {
-      if (t->isName(name)) {
+      if (t->IsNameEqual(name)) {
         if (u) {
           u->link_ = t->link_;
         } else {
@@ -289,7 +317,7 @@ class DivFunction: public ArithmeticFunction  {
   DivFunction();
   virtual ~DivFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     ArithmeticFunction::reduce(context, NAN, ArithmeticFunction::div, the_output);
   }
 };
@@ -300,7 +328,7 @@ class DumpFunction {
   DumpFunction();
   virtual ~DumpFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     MacroTable::instance()->macro_table()->PrintMacroTable();
   }
 };
@@ -311,8 +339,8 @@ class EntityifyFunction {
   EntityifyFunction();
   virtual ~EntityifyFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    Text* t = context->EvaluateArgument(1, the_output);
+  static void evaluate(Context* context, Text* &the_output) {
+    Text* t = context->EvaluateArgument(ArgOne, the_output);
     int c;
     int i;
     if (t && t->length_) {
@@ -354,7 +382,7 @@ class EqFunction {
   EqFunction();
   virtual ~EqFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     BooleanFunction::test(context, BooleanFunction::eq, the_output);
   }
 };
@@ -365,7 +393,7 @@ class EvalFunction {
   EvalFunction();
   virtual ~EvalFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Context* new_context = new Context(context, NULL);
     new_context->AddArgument("eval");
     new_context->AddArgument("<~2~>");
@@ -375,7 +403,7 @@ class EvalFunction {
     new_context->AddArgument("<~6~>");
     new_context->AddArgument("<~7~>");
     new_context->AddArgument("<~8~>");
-    new_context->eval(context->GetArgument(1)->text_, the_output);
+    new_context->ParseAndEvaluate(context->GetArgument(ArgOne)->text_, the_output);
     delete new_context;
   }
 };
@@ -386,39 +414,39 @@ class FirstFunction {
   FirstFunction();
   virtual ~FirstFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    Node* n = context->first_->next_;
-    Text* name = context->EvaluateArgument(n, the_output);
+  static void evaluate(Context* context, Text* &the_output) {
+    Node* arg = context->first_->next_;
+    Text* name = context->EvaluateArgument(arg, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name: first");
     }
-    Text* string = MacroTable::instance()->macro_table()->LookupMacro(name);
-    if (!string) {;
+    Macro* macro = MacroTable::instance()->macro_table()->LookupMacro(name);
+    if (!macro) {;
         context->ReportErrorAndDie("Undefined variable", name);
         return;
     }
     Text* d = NULL;
     int   len = 0;
-    int   r = string->length_;
+    int   r = macro->length_;
     for (;;) {
-        n = n->next_;
-        if (!n) {
+        arg= arg->next_;
+        if (!arg) {
             break;
         }
-        int index = string->indexOf(context->EvaluateArgument(n, the_output));
+        int index = macro->FindFirstSubstring(context->EvaluateArgument(arg, the_output));
         if (index >= 0 && index < r) {
             r = index;
-            d = context->EvaluateArgument(n, the_output);
+            d = context->EvaluateArgument(arg, the_output);
             len = d->length_;
         }
     }
-    the_output->AddToString(string->string_, r);
-    string->substr(r + len, string->length_ - (r + len));
-    n = context->previous_->GetArgument(0);
-    delete n->text_;
-    n->text_ = NULL;
-    delete n->value_;
-    n->value_ = d ? new Text(d) : NULL;
+    the_output->AddToString(macro->definition_, r);
+    macro->ReplaceDefWithSubstring(r + len, macro->length_ - (r + len));
+    arg = context->previous_->GetArgument(ArgZero);
+    delete arg->text_;
+    arg->text_ = NULL;
+    delete arg->value_;
+    arg->value_ = d ? new Text(d) : NULL;
   }
 };
 
@@ -428,7 +456,7 @@ class GeFunction {
   GeFunction();
   virtual ~GeFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     BooleanFunction::test(context, BooleanFunction::ge, the_output);
   }
 };
@@ -439,7 +467,7 @@ class GensymFunction {
   GensymFunction();
   virtual ~GensymFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     static number theSequenceNumber = 1000;
     theSequenceNumber += 1;
     the_output->AddNumberToString(theSequenceNumber);
@@ -452,13 +480,13 @@ class GetFunction {
   GetFunction();
   virtual ~GetFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     while (n) {
         Text* name = context->EvaluateArgument(n, the_output);
-        Text* macro = MacroTable::instance()->macro_table()->LookupMacro(name);
+        Macro* macro = MacroTable::instance()->macro_table()->LookupMacro(name);
         if (macro) {
-            the_output->AddToString(macro);
+            the_output->AddToString(new Text(macro));
         } else {
             context->ReportErrorAndDie("Undefined variable", name);
         }
@@ -473,7 +501,7 @@ class GtFunction {
   GtFunction();
   virtual ~GtFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     BooleanFunction::test(context, BooleanFunction::gt, the_output);
   }
 };
@@ -484,10 +512,10 @@ class IncludeFunction {
   IncludeFunction();
   virtual ~IncludeFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     // Node* n = context->first_->next_;
     Text* string = new Text();
-    Text* name = context->EvaluateArgument(1, the_output);
+    Text* name = context->EvaluateArgument(ArgOne, the_output);
     if (!string->ReadFromFile(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
@@ -501,7 +529,7 @@ class IncludeFunction {
     new_context->AddArgument("<~6~>");
     new_context->AddArgument("<~7~>");
     new_context->AddArgument("<~8~>");
-    new_context->eval(string, the_output);
+    new_context->ParseAndEvaluate(string, the_output);
     delete new_context;
     delete string;
   }
@@ -513,13 +541,13 @@ class LastFunction {
   LastFunction();
   virtual ~LastFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
-    Text* name = context->EvaluateArgument(1, the_output);
+    Text* name = context->EvaluateArgument(ArgOne, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
-    Text* string = MacroTable::instance()->macro_table()->LookupMacro(name);
+    Macro* string = MacroTable::instance()->macro_table()->LookupMacro(name);
     if (!string) {
         context->ReportErrorAndDie("Undefined variable", name);
         return;
@@ -532,17 +560,17 @@ class LastFunction {
         if (!n) {
             break;
         }
-        int index = string->lastIndexOf(context->EvaluateArgument(n, the_output));
+        int index = string->FindLastSubstring(context->EvaluateArgument(n, the_output));
         if (index > r) {
             r = index;
             d = context->EvaluateArgument(n, the_output);
             len = d->length_;
         }
     }
-    the_output->AddToString(string->string_ + r + len,
+    the_output->AddToString(string->definition_ + r + len,
                       string->length_ - (r + len));
     string->length_ = r;
-    n = context->previous_->GetArgument(0);
+    n = context->previous_->GetArgument(ArgZero);
     delete n->text_;
     n->text_ = NULL;
     delete n->value_;
@@ -556,7 +584,7 @@ class LeFunction {
   LeFunction();
   virtual ~LeFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     BooleanFunction::test(context, BooleanFunction::le, the_output);
   }
 };
@@ -567,8 +595,8 @@ class LengthFunction {
   LengthFunction();
   virtual ~LengthFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    the_output->AddNumberToString(context->EvaluateArgument(1, the_output)->utfLength());
+  static void evaluate(Context* context, Text* &the_output) {
+    the_output->AddNumberToString(context->EvaluateArgument(ArgOne, the_output)->utfLength());
   }
 };
 
@@ -578,8 +606,8 @@ class LiteralFunction {
   LiteralFunction();
   virtual ~LiteralFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    the_output->AddToString(context->GetArgument(1)->text_);
+  static void evaluate(Context* context, Text* &the_output) {
+    the_output->AddToString(context->GetArgument(ArgOne)->text_);
   }
 };
 
@@ -589,12 +617,12 @@ class LoopFunction {
   LoopFunction();
   virtual ~LoopFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     // Node* n = context->first_->next_;
-    while (context->EvaluateArgument(1, the_output)->length_ > 0) {
-        context->resetArg(1);
-        context->resetArg(2);
-        the_output->AddToString(context->EvaluateArgument(2, the_output));
+    while (context->EvaluateArgument(ArgOne, the_output)->length_ > 0) {
+        context->ResetArgument(ArgOne);
+        context->ResetArgument(ArgTwo);
+        the_output->AddToString(context->EvaluateArgument(ArgTwo, the_output));
     }
   }
 };
@@ -605,7 +633,7 @@ class LtFunction {
   LtFunction();
   virtual ~LtFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     BooleanFunction::test(context, BooleanFunction::lt, the_output);
   }
 };
@@ -616,7 +644,7 @@ class ModFunction: public ArithmeticFunction  {
   ModFunction();
   virtual ~ModFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     ArithmeticFunction::reduce(context, NAN, ArithmeticFunction::div, the_output);
   }
 };
@@ -627,7 +655,7 @@ class MultFunction: public ArithmeticFunction  {
   MultFunction();
   virtual ~MultFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     ArithmeticFunction::reduce(context, 1, ArithmeticFunction::mult, the_output);
   }
 };
@@ -638,7 +666,7 @@ class MuteFunction {
   MuteFunction();
   virtual ~MuteFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     while (n) {
         context->EvaluateArgument(n, the_output);
@@ -653,7 +681,7 @@ class NeFunction {
   NeFunction();
   virtual ~NeFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     BooleanFunction::test(context, BooleanFunction::ne, the_output);
   }
 };
@@ -664,7 +692,7 @@ class NullFunction {
   NullFunction();
   virtual ~NullFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
   }
 };
 
@@ -674,8 +702,8 @@ class NumberFunction {
   NumberFunction();
   virtual ~NumberFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    number num = context->EvaluateArgument(1, the_output)->getNumber();
+  static void evaluate(Context* context, Text* &the_output) {
+    number num = context->EvaluateArgument(ArgOne, the_output)->getNumber();
     the_output->AddToString(context->EvaluateArgument(num != NAN ? 2 : 3, the_output));
   }
 };
@@ -686,7 +714,7 @@ class OrFunction {
   OrFunction();
   virtual ~OrFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     Text* t = NULL;
     while (n) {
@@ -706,7 +734,7 @@ class PrintFunction {
   PrintFunction();
   virtual ~PrintFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     context->DumpContext();
   }
 };
@@ -717,9 +745,9 @@ class ReadFunction {
   ReadFunction();
   virtual ~ReadFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Text* string = new Text();
-    Text* name = context->EvaluateArgument(1, the_output);
+    Text* name = context->EvaluateArgument(ArgOne, the_output);
     if (!string->ReadFromFile(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
@@ -734,10 +762,10 @@ class RepFunction {
   RepFunction();
   virtual ~RepFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     // Node* n = context->first_->next_;
-    Text* value = context->EvaluateArgument(1, the_output);
-    for (number num = context->evalNumber(2, the_output); num > 0; num -= 1) {
+    Text* value = context->EvaluateArgument(ArgOne, the_output);
+    for (number num = context->EvaluateNumber(ArgTwo, the_output); num > 0; num -= 1) {
         the_output->AddToString(value);
     }
   }
@@ -749,13 +777,13 @@ class SetFunction {
   SetFunction();
   virtual ~SetFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    Text* name = context->EvaluateArgument(1, the_output);
+  static void evaluate(Context* context, Text* &the_output) {
+    Text* name = context->EvaluateArgument(ArgOne, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
     MacroTable::instance()->macro_table()->
-      InstallMacro(name, context->EvaluateArgument(2, the_output));
+      InstallMacro(name, context->EvaluateArgument(ArgTwo, the_output));
   }
 };
 
@@ -765,8 +793,8 @@ class SlashifyFunction {
   SlashifyFunction();
   virtual ~SlashifyFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    Text* t = context->EvaluateArgument(1, the_output);
+  static void evaluate(Context* context, Text* &the_output) {
+    Text* t = context->EvaluateArgument(ArgOne, the_output);
     int c;
     int i;
     if (t && t->length_) {
@@ -791,8 +819,8 @@ class StopFunction {
   StopFunction();
   virtual ~StopFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    context->ReportErrorAndDie("Stop", context->EvaluateArgument(1, the_output));
+  static void evaluate(Context* context, Text* &the_output) {
+    context->ReportErrorAndDie("Stop", context->EvaluateArgument(ArgOne, the_output));
   }
 };
 
@@ -802,7 +830,7 @@ class SubFunction: public ArithmeticFunction {
   SubFunction();
   virtual ~SubFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     ArithmeticFunction::reduce(context, NAN, ArithmeticFunction::sub, the_output);
   }
 };
@@ -813,23 +841,23 @@ class SubstrFunction {
   SubstrFunction();
   virtual ~SubstrFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     Text* string = context->EvaluateArgument(n, the_output);
     n = n->next_;
     if (n) {
-        number num = context->evalNumber(n, the_output);
+        number num = context->EvaluateNumber(n, the_output);
         if (num < 0) {
             num += string->length_;
         }
         number ber = INFINITY;
         n = n->next_;
         if (n) {
-            ber = context->evalNumber(n, the_output);
+            ber = context->EvaluateNumber(n, the_output);
         }
         if (num >= 0 && ber > 0) {
             the_output->AddToString(
-                context->EvaluateArgument(1, the_output)->utfSubstr(static_cast<int>(num),
+                context->EvaluateArgument(ArgOne, the_output)->utfSubstr(static_cast<int>(num),
                                                static_cast<int>(ber)));
         }
     }
@@ -842,7 +870,7 @@ class TrimFunction {
   TrimFunction();
   virtual ~TrimFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     while (n) {
         the_output->RemoveSpacesAddToString(context->EvaluateArgument(n, the_output));
@@ -857,10 +885,10 @@ class UnicodeFunction {
   UnicodeFunction();
   virtual ~UnicodeFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
+  static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
     while (n) {
-        number num = context->evalNumber(n, the_output);
+        number num = context->EvaluateNumber(n, the_output);
         if (num >= 0) {
             int i = static_cast<int>(num);
             if (i <= 0x7F) {
@@ -894,9 +922,9 @@ class WriteFunction {
   WriteFunction();
   virtual ~WriteFunction();
 
-  static void evaluate(Context* context, Text* the_output) {
-    Text* name = context->EvaluateArgument(1, the_output);
-    if (!context->EvaluateArgument(2, the_output)->WriteToFile(name)) {
+  static void evaluate(Context* context, Text* &the_output) {
+    Text* name = context->EvaluateArgument(ArgOne, the_output);
+    if (!context->EvaluateArgument(ArgTwo, the_output)->WriteToFile(name)) {
       context->ReportErrorAndDie("Error in writing file", name);
     }
   }

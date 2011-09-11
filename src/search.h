@@ -22,30 +22,33 @@
 #define SRC_SEARCH_H_
 
 #include "tilton.h"
-#include "text.h"
 
-// MAXHASH is the largest index in the hash table. It must be (2**n)-1.
-#define MAXHASH 1023
+class Text;
+class Macro;
+
+// MaxHash is the largest index in the hash table. It must be (2**n)-1.
+const int MaxHash = 1023;
 
 class SearchList {
  public:
   SearchList();
   virtual ~SearchList();
 
-  Text* LookupMacro(Text* name);
-  void  InstallMacro(const char* namestring, void (*function)(Context *, Text * ));
+  Macro* LookupMacro(Text* name);
   void  InstallMacro(Text* name, Text* value);
+  void  InstallMacro(Text* name, Macro* value);
   void  InstallMacro(const char* namestring, const char* string);
   void  PrintMacroTable();
-  Text* GetMacroDefOrInsertNull(Text* name);
+  Macro* GetMacroDefOrInsertNull(Text* name);
 
 
  private:
-  Text* the_macro_list_[MAXHASH + 1];
+  Macro* the_macro_list_[MaxHash + 1];
 
-  Text* the_macro_list(uint32 h);
-  void  set_the_macro_list(uint32 h, Text* t);
-  void  InsertIntoSearchList(Text* name, Text* t);
+  Macro* the_macro_list(uint32 h) const;
+  void  set_the_macro_list(uint32 h, Macro* m);
+  void  InsertIntoSearchList(Text* name, Macro* m);
 };
 
 #endif  // SRC_SEARCH_H_
+

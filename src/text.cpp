@@ -30,12 +30,14 @@
 //  be badly formed, it will interpret the first byte as a single byte
 //  character. So while expecting UTF-8 encoded strings, it will usually
 //  do the right thing with Latin-1 and similar encodings.
+#include "text.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "tilton.h"
-#include "text.h"
+#include "macro.h"
 
 // null constructor
 
@@ -74,6 +76,32 @@ Text::Text(Text* t) {
         init(NULL, 0);
     }
 }
+
+// macro constructor
+
+Text::Text(Macro* m) {
+
+  if (m) {
+    // copy string
+    init(m->definition_, m->length_);
+    // copy name
+    if (m->name_length_ == 0) {
+      name_ = NULL;
+    } else {
+      name_ = new char[m->name_length_];
+      if (m->name_) {
+        memmove(name_, m->name_, m->name_length_);
+        name_length_ = m->name_length_;
+      }
+    }  
+  } else {
+    init(NULL, 0);
+  }
+
+  // copy hash
+//  my_hash_ = m->my_hash_;
+}
+
 
 
 // deconstructor
@@ -271,37 +299,9 @@ number Text::getNumber() {
 }
 
 
-// find the first occurance of a substring
-
-int Text::indexOf(Text *t) {
-    int len = t->length_;
-    char* s = t->string_;
-    if (len) {
-        bool b;
-        int d = length_ - len;
-        int i;
-        int r;
-        for (r = 0; r <= d; r += 1) {
-            b = true;
-            for (i = 0; i < len; i += 1) {
-                if (string_[r + i] != s[i]) {
-                    b = false;
-                    break;
-                }
-            }
-            if (b) {
-                return r;
-            }
-        };
-    }
-    return -1;
-}
-
-
 void Text::init(const char* s, int len) {
     name_ = NULL;
     link_ = NULL;
-    function_ = NULL;
     length_ = name_length_ = 0;
     my_hash_ = 0;
     max_length_ = len;
@@ -335,22 +335,9 @@ void Text::ReadStdInput() {
 }
 
 
-// is c-string
-
-bool Text::is(const char* s) {
-    int i;
-    for (i = 0; i < length_; i += 1) {
-        if (string_[i] != s[i]) {
-            return false;
-        }
-    }
-    return (s[length_] == 0);
-}
-
-
 // is text
 
-bool Text::is(Text* t) {
+bool Text::IsEqual(Text* t) {
     int i;
     if (length_ != t->length_) {
         return false;
@@ -361,46 +348,6 @@ bool Text::is(Text* t) {
         }
     }
     return true;
-}
-
-
-// is name text
-
-bool Text::isName(Text* t) {
-    if (name_length_ != t->length_) {
-        return false;
-    }
-    for (int i = 0; i < name_length_; i += 1) {
-        if (name_[i] != t->string_[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-
-// find the last occurance of a substring
-
-int Text::lastIndexOf(Text *t) {
-    int len = t->length_;
-    char* s = t->string_;
-    if (len) {
-        bool b;
-        int d = length_ - len;
-        for (int r = d; r >= 0; r -= 1) {
-            b = true;
-            for (int i = 0; i < len; i += 1) {
-                if (string_[r + i] != s[i]) {
-                    b = false;
-                    break;
-                }
-            }
-            if (b) {
-                return r;
-            }
-        }
-    }
-    return -1;
 }
 
 
@@ -531,7 +478,7 @@ void Text::substr(int start, int len) {
 
 // remove tail and return it
 
-Text* Text::tail(int index) {
+Text* Text::RemoveFromString(int index) {
     if (index >= 0 && index < length_) {
         int len = length_ - index;
         length_ = index;

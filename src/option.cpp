@@ -35,20 +35,20 @@ OptionProcessor::~OptionProcessor() {}
 bool OptionProcessor::ProcessOption(int argc, const char **argv,
                                     const char *arg, int &cmd_arg,
                                     int &frame_arg, Context *top_frame,
-                                    Text *in, Text* the_output) {
+                                    Text *in, Text* &the_output) {
   return true;
 }
 
 bool EvalProcessor::ProcessOption(int argc, const char *argv[],
                                   const char* arg, int &cmd_arg,
                                   int &frame_arg, Context* top_frame,
-                                  Text* in, Text* the_output) {
+                                  Text* in, Text* &the_output) {
   Text* string = NULL;
   if (cmd_arg < argc) {
     string = new Text(argv[cmd_arg]);
     cmd_arg += 1;
     string->set_name("[eval]");
-    top_frame->eval(string, the_output);
+    top_frame->ParseAndEvaluate(string, the_output);
     delete string;
   } else {
     top_frame->ReportErrorAndDie("Missing expression on -eval");
@@ -59,17 +59,17 @@ bool EvalProcessor::ProcessOption(int argc, const char *argv[],
 bool GoProcessor::ProcessOption(int argc, const char * argv[],
                                 const char * arg, int &cmd_arg,
                                 int &frame_arg, Context* top_frame,
-                                Text* in, Text* the_output) {
+                                Text* in, Text* &the_output) {
   in->ReadStdInput();
   in->set_name("[go]");
-  top_frame->eval(in, the_output);
+  top_frame->ParseAndEvaluate(in, the_output);
   return false;
 }
 
 bool HelpProcessor::ProcessOption(int argc, const char * argv[],
                                   const char * arg, int &cmd_arg,
                                   int &frame_arg, Context* top_frame,
-                                  Text* in, Text* the_output) {
+                                  Text* in, Text* &the_output) {
   printf("  tilton command line parameters:\n"
          "    -eval <tilton expression>\n"
          "    -go\n"
@@ -89,7 +89,7 @@ bool HelpProcessor::ProcessOption(int argc, const char * argv[],
 bool IncludeProcessor::ProcessOption(int argc, const char * argv[],
                                      const char * arg, int &cmd_arg,
                                      int &frame_arg, Context* top_frame,
-                                     Text* in, Text* the_output) {
+                                     Text* in, Text* &the_output) {
   Text* name = NULL;
   Text* string = NULL;
   if (cmd_arg < argc) {
@@ -99,7 +99,7 @@ bool IncludeProcessor::ProcessOption(int argc, const char * argv[],
     if (!string->ReadFromFile(name)) {
       top_frame->ReportErrorAndDie("Error in -include", name);
     }
-    top_frame->eval(string, the_output);
+    top_frame->ParseAndEvaluate(string, the_output);
     delete name;
     delete string;
   } else {
@@ -112,7 +112,7 @@ bool IncludeProcessor::ProcessOption(int argc, const char * argv[],
 bool MuteProcessor::ProcessOption(int argc, const char * argv[],
                                   const char * arg, int &cmd_arg,
                                   int &frame_arg, Context* top_frame,
-                                  Text* in, Text* the_output) {
+                                  Text* in, Text* &the_output) {
   the_output->length_ = 0;
   return true;
 };
@@ -120,7 +120,7 @@ bool MuteProcessor::ProcessOption(int argc, const char * argv[],
 bool NoProcessor::ProcessOption(int argc, const char * argv[],
                                 const char * arg, int &cmd_arg,
                                 int &frame_arg, Context* top_frame,
-                                Text* in, Text* the_output) {
+                                Text* in, Text* &the_output) {
   return false;
 };
 
@@ -128,7 +128,7 @@ bool NoProcessor::ProcessOption(int argc, const char * argv[],
 bool ReadProcessor::ProcessOption(int argc, const char * argv[],
                                   const char * arg, int &cmd_arg,
                                   int &frame_arg, Context* top_frame,
-                                  Text* in, Text* the_output) {
+                                  Text* in, Text* &the_output) {
   Text* name = NULL;
   Text* string = NULL;
   if (cmd_arg < argc) {
@@ -151,7 +151,7 @@ bool ReadProcessor::ProcessOption(int argc, const char * argv[],
 bool SetProcessor::ProcessOption(int argc, const char * argv[],
                                  const char * arg, int &cmd_arg,
                                  int &frame_arg, Context* top_frame,
-                                 Text* in, Text* the_output) {
+                                 Text* in, Text* &the_output) {
   Text* name = NULL;
   Text* string = NULL;
   if (cmd_arg + 1 < argc) {
@@ -172,7 +172,7 @@ bool SetProcessor::ProcessOption(int argc, const char * argv[],
 bool WriteProcessor::ProcessOption(int argc, const char * argv[],
                                    const char * arg, int &cmd_arg,
                                    int &frame_arg, Context* top_frame,
-                                   Text* in, Text* the_output) {
+                                   Text* in, Text* &the_output) {
   Text* name = NULL;
   if (cmd_arg < argc) {
     name = new Text(argv[cmd_arg]);
@@ -193,7 +193,7 @@ bool WriteProcessor::ProcessOption(int argc, const char * argv[],
 bool DigitProcessor::ProcessOption(int argc, const char * argv[],
                                    const char * arg, int &cmd_arg,
                                    int &frame_arg, Context* top_frame,
-                                   Text* in, Text* the_output) {
+                                   Text* in, Text* &the_output) {
   int k = arg[1] - '0';
   if (k >= 0 && k <= 9 && cmd_arg < argc) {
     frame_arg = k;
@@ -210,7 +210,7 @@ bool DigitProcessor::ProcessOption(int argc, const char * argv[],
 bool ParameterProcessor::ProcessOption(int argc, const char * argv[],
                                        const char * arg, int &cmd_arg,
                                        int &frame_arg, Context* top_frame,
-                                       Text* in, Text* the_output) {
+                                       Text* in, Text* &the_output) {
   // parameter text
   top_frame->GetArgument(frame_arg)->value_ = new Text(arg);
   frame_arg += 1;

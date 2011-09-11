@@ -56,30 +56,30 @@ class Context {
   //  in the new context as argument strings. Any nested <~ ~> sequences within
   //  the arguments are treated for now as literal (lazy evaluation). The [0]
   //  argument is the name of the macro to be invoked.
-  void    eval(Text* input, Text* the_output);
+  void    ParseAndEvaluate(Text* input, Text* &the_output);
 
   // EvaluateArgument
   // Evaluate an argument of a macro. If we have already determined its
   // value, then simply return it. Otherwise, evaluate the argument to obtain
   // its value (memoization).
-  Text*   EvaluateArgument(int argNr, Text* the_output);
-  Text*   EvaluateArgument(Node* n, Text* the_output);
+  Text*   EvaluateArgument(const int argNr, Text* &the_output);
+  Text*   EvaluateArgument(Node* n, Text* &the_output);
 
-  number  evalNumber(int argNr, Text* the_output);
-  number  evalNumber(Node* n, Text* the_output);
+  number  EvaluateNumber(const int argNr, Text* &the_output);
+  number  EvaluateNumber(Node* n, Text* &the_output);
 
   // GetArgument
   // Retrieves an argument
   // Arguments are stored as nodes on the frame.
-  Node*   GetArgument(int argNr);
+  Node*   GetArgument(const int argNr);
 
   void    nop();
 
-  //  resetArg
+  //  ResetArgument
   //  Delete the value of an argument of a macro.
   //  This allows for evaluating an arg more than once.
   //  This is used by <~loop~>
-  void    resetArg(int argNr);
+  void    ResetArgument(const int argNr);
 
   Node*   first_;
   Context* previous_;
@@ -89,27 +89,25 @@ class Context {
   // Recurse through the stack frames to find the location of the error
   void FindError(Text* report);
 
-  // EvaluateLeftAngle
+  // ParseLeftAngle
   // Parse and eval the text following a left angle bracket
-  void EvaluateLeftAngle(Iter* in, int &depth, Text* the_output,
+  void ParseLeftAngle(Iter* in, int &depth, Text* &the_output,
                          int &tildes_seen, Context* &new_context);
 
-  // EvaluateTilde
-  void EvaluateTilde(Iter* in, int &depth, Text* the_output,
+  // ParseTilde
+  void ParseTilde(Iter* in, int &depth, Text* &the_output,
                      int &tildes_seen, Context* &new_context);
 
-  // EvaluateEOT
-  void EvaluateEOT(Iter* in, int &depth, Text* the_output,
+  // ParseEOT
+  void ParseEOT(Iter* in, int &depth, Text* &the_output,
                    int &tildes_seen, Context* &new_context);
 
-  // ExpandMacro
-  void ExpandMacro(Context* &new_context, Text* the_output);
+  // EvaluateMacro
+  void EvaluateMacro(Context* &new_context, Text* &the_output);
 
   // stackEmpty
   // Tests to determine if the eval stack is empty
-  bool stackEmpty(int depth) {
-    return depth == 0;
-  }
+  bool stackEmpty(const int depth) const { return depth == 0; }
 
   // checkForTilde
   // Examines the input stream for a run of tildes
@@ -125,18 +123,16 @@ class Context {
 
   // haveTildes
   // Tests to determine if we have a run of tildes
-  bool haveTildes(int run_length) {
-    return run_length > 0;
-  }
+  bool haveTildes(const int run_length) const { return run_length > 0; }
 
   // EvalTextForArg
   // Evaluate a text and produce a value, store in an argument
-  Node* EvalTextForArg(int arg_number, Context* &new_context,
+  Node* EvalTextForArg(const int arg_number, Context* &new_context,
                        Text* &the_output);
 
   // setMacroVariable
   // Sets a digit macro to a value
-  void SetMacroVariable(int varNo, Text* t);
+  void SetMacroVariable(const int varNo, Text* t);
 
   int     character_;
   int     index_;

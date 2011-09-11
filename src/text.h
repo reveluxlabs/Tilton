@@ -25,8 +25,7 @@
 #include "string.h"
 
 class Context;
-
-typedef void (*Builtin)(Context* context, Text* the_output);
+class Macro;
 
 class Text {
  public:
@@ -35,6 +34,7 @@ class Text {
   explicit Text(const char* s);
   Text(const char* s, int len);
   explicit Text(Text* t);
+  explicit Text(Macro* t);
   virtual ~Text();
 
   // AddToString
@@ -57,15 +57,11 @@ class Text {
   // calculate a hash for a string
   uint32  Hash();
   
-  int     indexOf(Text* t);
-
   // ReadStdInput
   // Read from stdin and append to string
   void    ReadStdInput();
-  bool    is(const char* s);
-  bool    is(Text* t);
-  bool    isName(Text* t);
-  int     lastIndexOf(Text* t);
+
+  bool    IsEqual(Text* t);
   bool    lt(Text* t);
   
   // WriteStdOutput
@@ -87,7 +83,7 @@ class Text {
   void    set_name(Text* t);
   
   void    substr(int start, int len);
-  Text*   tail(int index);
+  Text*   RemoveFromString(int index);
   
   // RemoveSpacesAddToString
   // trims whitespace before appending to string_
@@ -100,23 +96,6 @@ class Text {
   // writes string_ to a file
   bool    WriteToFile(Text* t);
 
-  // added in initial refactoring of eval
-  // replace with body
-  void    addToString(char c) {
-      this->AddToString(c);
-  }
-  void    addToString(char c, int i) {
-      this->AddToString(c, i);
-  }
-  void    addToString(Text* s) {
-      if (s) {
-          this->AddToString(s->string_, s->length_);
-      }
-  }
-  Text*    removeFromString(int i) {
-      return this->tail(i);
-  }
-  
   // allDigits
   // Tests to see if a string is all digits
   bool    allDigits() {
@@ -160,7 +139,6 @@ class Text {
   // used by lt
   bool ltStr(Text* t);
 
-  Builtin      function_;
   int          length_;
   Text*        link_;       // hash collisions
   char*        name_;

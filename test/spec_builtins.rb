@@ -225,7 +225,7 @@ it "should process the include builtin with null args" do
     result = %x[ echo "<~dump~>" | ./tilton 2> dump.txt]
     result = %x[ wc dump.txt ]
     # verify results
-    result.should.include "45"
+    result.should.include "4"
     # tear down fixture
     %x[ rm dump.txt ]
   end

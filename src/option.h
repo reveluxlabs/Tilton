@@ -33,7 +33,7 @@ class OptionProcessor {
 
 	virtual bool ProcessOption(int argc, const char * argv[], const char * arg,
 	                   int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // EvalProcessor -- processor for the eval option
@@ -43,7 +43,7 @@ class EvalProcessor: public OptionProcessor {
   // -eval expression
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                    int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                   Text* the_output);
+                   Text* &the_output);
 };
 
 // GoProcessor -- processor for the go option
@@ -53,7 +53,7 @@ class GoProcessor: public OptionProcessor {
   // -go (process the standard input now)
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // HelpProcessor -- processor for the help option
@@ -63,7 +63,7 @@ class HelpProcessor: public OptionProcessor {
   // -help
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // IncludeProcessor -- processor for the include option
@@ -73,7 +73,7 @@ class IncludeProcessor: public OptionProcessor {
   // -include filespec
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // MuteProcessor -- processor for the mute option
@@ -83,7 +83,7 @@ class MuteProcessor: public OptionProcessor {
   // -mute
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 
 };
 
@@ -94,7 +94,7 @@ class NoProcessor: public OptionProcessor {
   // -no (do not process the standard input)
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // ReadProcessor -- processor for the read option
@@ -104,7 +104,7 @@ class ReadProcessor: public OptionProcessor {
   // -read filespec
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // SetProcessor -- processor for the set option
@@ -114,7 +114,7 @@ class SetProcessor: public OptionProcessor {
   // -set name string
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // WriteProcessor -- processor for the write option
@@ -124,7 +124,7 @@ class WriteProcessor: public OptionProcessor {
   // -write filespec
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // DigitProcessor -- processor for the DIGIT option
@@ -134,7 +134,7 @@ class DigitProcessor: public OptionProcessor {
   // -DIGIT
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 // ParameterProcessor -- processor for parameters on the command line
@@ -144,7 +144,7 @@ class ParameterProcessor : public OptionProcessor {
   // parameter
   bool ProcessOption(int argc, const char * argv[], const char * arg,
                      int &cmd_arg, int &frame_arg, Context* top_frame, Text* in,
-                     Text* the_output);
+                     Text* &the_output);
 };
 
 #endif  // SRC_OPTION_H_

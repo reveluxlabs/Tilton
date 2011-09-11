@@ -24,6 +24,17 @@
 #include <map>
 #define EOT (-1)
 
+const int ArgZero  = 0;
+const int ArgOne   = 1;
+const int ArgTwo   = 2;
+const int ArgThree = 3;
+
+class Context;
+class Text;
+
+// Builtin is the signature for built-in functions
+typedef void (*Builtin)(Context* context, Text* &the_output);
+
 // Tilton numbers are integers.
 
 typedef long number;
@@ -60,6 +71,10 @@ class MacroProcessor {
   // Store function objects in a map for use in command line processing
   void CreateOptionProcessors();
   
+  // InstallTiltonMacros
+  // loads the macro table with tilton macros
+  void InstallTiltonMacros();
+  
   // ProcessCommandLine
   // Read the command line arguments and process
   bool ProcessCommandLine(int argc, const char * argv[]);
@@ -68,17 +83,6 @@ class MacroProcessor {
   // Read the standard input and expand the macros, write to standard out
   void Run(bool go);
 
-  // the_output
-  // Retrieve the output string
-  Text* the_output() {
-    return the_output_;
-  }
-  
-  // set_the_output
-  // Store a new value for the_output
-  void set_the_output(Text* t) {
-    the_output_ = t;
-  }
  private:
   Context*                          top_frame_;
   Text*                             in_;
@@ -90,22 +94,14 @@ class MacroProcessor {
 
 class MacroTable {
  public:
-   MacroTable();
-   virtual ~MacroTable();
+  MacroTable();
+  virtual ~MacroTable();
 
-   static MacroTable* instance();
+  static MacroTable* instance();
 
   // macro_table
   // Retrieve the macro table
-  SearchList* macro_table() {
-    return macro_table_;
-  }
-
-  // set_macro_table
-  // Store a new value for macro_table
-  void set_macro_table(SearchList* mt) {
-    macro_table_ = mt;
-  }
+  SearchList* macro_table() { return macro_table_; }
 
  private:
   static MacroTable*  pInstance;

@@ -30,55 +30,62 @@ FunctionContext::FunctionContext() {
 FunctionContext::~FunctionContext() {
 }
 
-// jr 1Sep11 (based on code by Douglas Crockford)
-void FunctionContext::RegisterTiltonFunctions() {
-  SearchList* macro_table = MacroTable::instance()->macro_table();
+// Singleton implementation for function context
 
-  macro_table->InstallMacro("add",       AddFunction::evaluate);
-  macro_table->InstallMacro("and",       AndFunction::evaluate);
-  macro_table->InstallMacro("append",    AppendFunction::evaluate);
-  macro_table->InstallMacro("define",    DefineFunction::evaluate);
-  macro_table->InstallMacro("defined?",  DefinedFunction::evaluate);
-  macro_table->InstallMacro("delete",    DeleteFunction::evaluate);
-  macro_table->InstallMacro("div",       DivFunction::evaluate);
-  macro_table->InstallMacro("dump",      DumpFunction::evaluate);
-  macro_table->InstallMacro("entityify", EntityifyFunction::evaluate);
-  macro_table->InstallMacro("eq?",       EqFunction::evaluate);
-  macro_table->InstallMacro("eval",      EvalFunction::evaluate);
-  macro_table->InstallMacro("first",     FirstFunction::evaluate);
-  macro_table->InstallMacro("ge?",       GeFunction::evaluate);
-  macro_table->InstallMacro("gensym",    GensymFunction::evaluate);
-  macro_table->InstallMacro("get",       GetFunction::evaluate);
-  macro_table->InstallMacro("gt?",       GtFunction::evaluate);
-  macro_table->InstallMacro("include",   IncludeFunction::evaluate);
-  macro_table->InstallMacro("last",      LastFunction::evaluate);
-  macro_table->InstallMacro("le?",       LeFunction::evaluate);
-  macro_table->InstallMacro("length",    LengthFunction::evaluate);
-  macro_table->InstallMacro("literal",   LiteralFunction::evaluate);
-  macro_table->InstallMacro("loop",      LoopFunction::evaluate);
-  macro_table->InstallMacro("lt?",       LtFunction::evaluate);
-  macro_table->InstallMacro("mod",       ModFunction::evaluate);
-  macro_table->InstallMacro("mult",      MultFunction::evaluate);
-  macro_table->InstallMacro("mute",      NullFunction::evaluate);
-  macro_table->InstallMacro("ne?",       NeFunction::evaluate);
-  macro_table->InstallMacro("null",      NullFunction::evaluate);
-  macro_table->InstallMacro("number?",   NumberFunction::evaluate);
-  macro_table->InstallMacro("or",        OrFunction::evaluate);
-  macro_table->InstallMacro("print",     PrintFunction::evaluate);
-  macro_table->InstallMacro("read",      ReadFunction::evaluate);
-  macro_table->InstallMacro("rep",       RepFunction::evaluate);
-  macro_table->InstallMacro("set",       SetFunction::evaluate);
-  macro_table->InstallMacro("slashify",  SlashifyFunction::evaluate);
-  macro_table->InstallMacro("stop",      StopFunction::evaluate);
-  macro_table->InstallMacro("sub",       SubFunction::evaluate);
-  macro_table->InstallMacro("substr",    SubstrFunction::evaluate);
-  macro_table->InstallMacro("trim",      TrimFunction::evaluate);
-  macro_table->InstallMacro("unicode",   UnicodeFunction::evaluate);
-  macro_table->InstallMacro("write",     WriteFunction::evaluate);
-  macro_table->InstallMacro("gt", ">");
-  macro_table->InstallMacro("lt", "<");
-  macro_table->InstallMacro("tilde", "~");
-  macro_table->InstallMacro("tilton", "0.7");
+FunctionContext* FunctionContext::pInstance = 0;
+
+FunctionContext* FunctionContext::instance() {
+  if ( pInstance == 0 ) {
+    pInstance = new FunctionContext;
+  }
+  return pInstance;
+}
+
+// jr 11Sep11
+void FunctionContext::RegisterTiltonFunctions() {
+
+  RegisterFunction("add",       AddFunction::evaluate);
+  RegisterFunction("add",       AddFunction::evaluate);
+  RegisterFunction("and",       AndFunction::evaluate);
+  RegisterFunction("append",    AppendFunction::evaluate);
+  RegisterFunction("define",    DefineFunction::evaluate);
+  RegisterFunction("defined?",  DefinedFunction::evaluate);
+  RegisterFunction("delete",    DeleteFunction::evaluate);
+  RegisterFunction("div",       DivFunction::evaluate);
+  RegisterFunction("dump",      DumpFunction::evaluate);
+  RegisterFunction("entityify", EntityifyFunction::evaluate);
+  RegisterFunction("eq?",       EqFunction::evaluate);
+  RegisterFunction("eval",      EvalFunction::evaluate);
+  RegisterFunction("first",     FirstFunction::evaluate);
+  RegisterFunction("ge?",       GeFunction::evaluate);
+  RegisterFunction("gensym",    GensymFunction::evaluate);
+  RegisterFunction("get",       GetFunction::evaluate);
+  RegisterFunction("gt?",       GtFunction::evaluate);
+  RegisterFunction("include",   IncludeFunction::evaluate);
+  RegisterFunction("last",      LastFunction::evaluate);
+  RegisterFunction("le?",       LeFunction::evaluate);
+  RegisterFunction("length",    LengthFunction::evaluate);
+  RegisterFunction("literal",   LiteralFunction::evaluate);
+  RegisterFunction("loop",      LoopFunction::evaluate);
+  RegisterFunction("lt?",       LtFunction::evaluate);
+  RegisterFunction("mod",       ModFunction::evaluate);
+  RegisterFunction("mult",      MultFunction::evaluate);
+  RegisterFunction("mute",      NullFunction::evaluate);
+  RegisterFunction("ne?",       NeFunction::evaluate);
+  RegisterFunction("null",      NullFunction::evaluate);
+  RegisterFunction("number?",   NumberFunction::evaluate);
+  RegisterFunction("or",        OrFunction::evaluate);
+  RegisterFunction("print",     PrintFunction::evaluate);
+  RegisterFunction("read",      ReadFunction::evaluate);
+  RegisterFunction("rep",       RepFunction::evaluate);
+  RegisterFunction("set",       SetFunction::evaluate);
+  RegisterFunction("slashify",  SlashifyFunction::evaluate);
+  RegisterFunction("stop",      StopFunction::evaluate);
+  RegisterFunction("sub",       SubFunction::evaluate);
+  RegisterFunction("substr",    SubstrFunction::evaluate);
+  RegisterFunction("trim",      TrimFunction::evaluate);
+  RegisterFunction("unicode",   UnicodeFunction::evaluate);
+  RegisterFunction("write",     WriteFunction::evaluate);
 }
 
 

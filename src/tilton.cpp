@@ -60,6 +60,15 @@ void MacroProcessor::CreateOptionProcessors() {
   option_processors_.insert(std::make_pair('p', new ParameterProcessor()));
 }
 
+void MacroProcessor::InstallTiltonMacros() {
+  SearchList* macro_table = MacroTable::instance()->macro_table();
+
+  macro_table->InstallMacro("gt", ">");
+  macro_table->InstallMacro("lt", "<");
+  macro_table->InstallMacro("tilde", "~");
+  macro_table->InstallMacro("tilton", "0.7");
+}
+
 bool MacroProcessor::ProcessCommandLine(int argc, const char* *argv) {
   bool go = true;
   const char* arg;
@@ -97,7 +106,7 @@ void MacroProcessor::Run(bool go) {
   if (go) {
     in_->ReadStdInput();
     in_->set_name("[standard input]");
-    top_frame_->eval(in_, the_output_);
+    top_frame_->ParseAndEvaluate(in_, the_output_);
   }
 
   // and finally
@@ -133,8 +142,9 @@ int main(int argc, const char * argv[]) {
   MacroProcessor* tilton_processor = new MacroProcessor;
   
   tilton_processor->CreateOptionProcessors();
+  tilton_processor->InstallTiltonMacros();
 
-  FunctionContext::RegisterTiltonFunctions();
+  FunctionContext::instance()->RegisterTiltonFunctions();
 
   should_go = tilton_processor->ProcessCommandLine(argc, argv);
 

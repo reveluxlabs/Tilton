@@ -25,43 +25,32 @@
 
 #include "tilton.h"
 #include "text.h"
+#include "macro.h"
 
 
 SearchList::SearchList() {
     int i;
 
-    for (i = MAXHASH; i >= 0; i -= 1) {
+    for (i = MaxHash; i >= 0; i -= 1) {
         the_macro_list_[i] = NULL;
     }
 }
 
-SearchList::~SearchList() {
-}
+SearchList::~SearchList() {}
 
-Text* SearchList::the_macro_list(uint32 h) {
+Macro* SearchList::the_macro_list(uint32 h) const {
     return the_macro_list_[h];
 }
 
-void SearchList::set_the_macro_list(uint32 h, Text* t) {
-    the_macro_list_[h] = t;
+void SearchList::set_the_macro_list(uint32 h, Macro* m) {
+    the_macro_list_[h] = m;
 }
 
-void SearchList::InsertIntoSearchList(Text* name, Text* t) {
-    uint32 h = name->Hash() & MAXHASH;
-    t->set_name(name);
-    t->link_ = SearchList::the_macro_list(h);
-    SearchList::set_the_macro_list(h, t);
-}
-
-//  addFunction is used by main to add primitive functions to tilton.
-//  A function operates on a context which supplies the parameters.
-
-void SearchList::InstallMacro(const char* namestring, void (*function)(Context *, Text * )) {
-    Text* t = new Text();
-    Text* name = new Text(namestring);
-    SearchList::InsertIntoSearchList(name, t);
-    t->function_ = function;
-    delete name;
+void SearchList::InsertIntoSearchList(Text* name, Macro* m) {
+    uint32 h = name->Hash() & MaxHash;
+    m->set_name(name);
+    m->link_ = SearchList::the_macro_list(h);
+    SearchList::set_the_macro_list(h, m);
 }
 
 //  addMacro -- This is a little faster than InstallMacro() because it assumes that
@@ -69,22 +58,22 @@ void SearchList::InstallMacro(const char* namestring, void (*function)(Context *
 
 void SearchList::InstallMacro(const char* namestring, const char* string) {
     Text* name = new Text(namestring);
-    SearchList::InsertIntoSearchList(name, new Text(string));
+    SearchList::InsertIntoSearchList(name, new Macro(string));
     delete name;
 }
 
 //  lookup - search through the macro list for a text with a specific name.
 //  The list is a hash table with links for collisions.
 
-Text* SearchList::LookupMacro(Text* name) {
-    Text* t = SearchList::the_macro_list(name->Hash() & MAXHASH);
-    while (t) {
-        if (t->isName(name)) {
+Macro* SearchList::LookupMacro(Text* name) {
+    Macro* m = SearchList::the_macro_list(name->Hash() & MaxHash);
+    while (m) {
+        if (m->IsNameEqual(name)) {
             break;
         }
-        t = t->link_;
+        m = m->link_;
     }
-    return t;
+    return m;
 }
 
 
@@ -93,29 +82,38 @@ Text* SearchList::LookupMacro(Text* name) {
 //  it in the list.
 
 void SearchList::InstallMacro(Text* name, Text* value) {
-    Text* t = SearchList::LookupMacro(name);
-    if (t) {
-        t->set_string(value);
+    Macro* m = SearchList::LookupMacro(name);
+    if (m) {
+        m->set_string(value);
     } else {
-        SearchList::InsertIntoSearchList(name, new Text(value));
+        SearchList::InsertIntoSearchList(name, new Macro(value));
     }
+}
+
+void SearchList::InstallMacro(Text* name, Macro* value) {
+  Macro* m = SearchList::LookupMacro(name);
+  if (m) {
+    m->set_string(new Text(value));
+  } else {
+    SearchList::InsertIntoSearchList(name, value);
+  }
 }
 
 void SearchList::PrintMacroTable() {
     int i;
-    for (i = 0; i < (MAXHASH + 1); i += 1) {
-        Text* macro = SearchList::the_macro_list(i);
+    for (i = 0; i < (MaxHash + 1); i += 1) {
+        Macro* macro = SearchList::the_macro_list(i);
         if (macro) {
-            macro->PrintTextList();
+            macro->PrintMacroList();
         }
     }
 }
 
-Text* SearchList::GetMacroDefOrInsertNull(Text* name) {
-    Text* t = SearchList::LookupMacro(name);
+Macro* SearchList::GetMacroDefOrInsertNull(Text* name) {
+    Macro* t = SearchList::LookupMacro(name);
     if (!t) {
-        t = new Text(0);
-        uint32 h = name->Hash() & MAXHASH;
+        t = new Macro(0);
+        uint32 h = name->Hash() & MaxHash;
         t->set_name(name);
         t->link_ = SearchList::the_macro_list(h);
         SearchList::set_the_macro_list(h, t);
