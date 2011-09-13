@@ -345,7 +345,7 @@ class EntityifyFunction {
     int i;
     if (t && t->length_) {
         for (i = 0; i < t->length_; i += 1) {
-            c = t->getChar(i);
+            c = t->GetCharacter(i);
             switch (c) {
                 case '&':
                     the_output->AddToString("&amp;");
@@ -547,8 +547,8 @@ class LastFunction {
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
-    Macro* string = MacroTable::instance()->macro_table()->LookupMacro(name);
-    if (!string) {
+    Macro* macro = MacroTable::instance()->macro_table()->LookupMacro(name);
+    if (!macro) {
         context->ReportErrorAndDie("Undefined variable", name);
         return;
     }
@@ -560,16 +560,16 @@ class LastFunction {
         if (!n) {
             break;
         }
-        int index = string->FindLastSubstring(context->EvaluateArgument(n, the_output));
+        int index = macro->FindLastSubstring(context->EvaluateArgument(n, the_output));
         if (index > r) {
             r = index;
             d = context->EvaluateArgument(n, the_output);
             len = d->length_;
         }
     }
-    the_output->AddToString(string->definition_ + r + len,
-                      string->length_ - (r + len));
-    string->length_ = r;
+    the_output->AddToString(macro->definition_ + r + len,
+                      macro->length_ - (r + len));
+    macro->length_ = r;
     n = context->previous_->GetArgument(ArgZero);
     delete n->text_;
     n->text_ = NULL;
@@ -799,7 +799,7 @@ class SlashifyFunction {
     int i;
     if (t && t->length_) {
         for (i = 0; i < t->length_; i += 1) {
-            c = t->getChar(i);
+            c = t->GetCharacter(i);
             switch (c) {
                 case '\\':  // backslash
                 case '\'':  // single quote

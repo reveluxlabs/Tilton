@@ -36,14 +36,14 @@ MacroProcessor::MacroProcessor() {
 }
 
 MacroProcessor::~MacroProcessor() {
-  delete top_frame_;
-  delete in_;
-  delete the_output_;
-
   while ( option_processors_.begin() != option_processors_.end() ) {
     delete option_processors_.begin()->second;
     option_processors_.erase(option_processors_.begin());
   }
+
+  delete the_output_;
+  delete top_frame_;
+  delete in_;
 }
 
 void MacroProcessor::CreateOptionProcessors() {

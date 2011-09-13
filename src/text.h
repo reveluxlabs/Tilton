@@ -49,8 +49,12 @@ class Text {
   // appends a number to the string wrapped by Text
   void    AddNumberToString(number);
   
-  void    PrintTextList();
-  int     getChar(int index);
+  // GetCharacter
+  // retrieve a character from string
+  int     GetCharacter(int index);
+  
+  // getNumber
+  // retrieve a number from string
   number  getNumber();
   
   // Hash
@@ -115,10 +119,10 @@ class Text {
     int c;             // current character
     int i;             // loop counter
 
-    int num = this->getChar(0) - '0';
+    int num = this->GetCharacter(0) - '0';
     if (isDigit(num)) {
       for (i = 1; i < this->length_; i += 1) {
-        c = this->getChar(i) - '0';             // i for 0, jr 4Sep11
+        c = this->GetCharacter(i) - '0';             // i for 0, jr 4Sep11
         if (c < 0 || c > 9) {
           num = -1;
           break;
@@ -129,6 +133,17 @@ class Text {
     return num;
   }
 
+  int          length_;
+  char*        name_;
+  int          name_length_;
+  char*        string_;
+
+ private:
+  // CheckLengthAndIncrease
+  // Test the length of string against the max, increase if needed
+  void    CheckLengthAndIncrease(int len);
+  void    InitializeText(const char* s, int len);
+
   // ltNum
   // less than for numbers
   // used by lt
@@ -138,19 +153,7 @@ class Text {
   // less than for strings
   // used by lt
   bool ltStr(Text* t);
-
-  int          length_;
-  Text*        link_;       // hash collisions
-  char*        name_;
-  int          name_length_;
-  char*        string_;
-
- private:
-  // CheckLengthAndIncrease
-  // Test the length of string against the max, increase if needed
-  void    CheckLengthAndIncrease(int len);
-  void    init(const char* s, int len);
-
+  
   uint32  my_hash_;
   int     max_length_;
 };

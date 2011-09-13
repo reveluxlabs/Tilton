@@ -18,11 +18,6 @@
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
 //
 // This version of Tilton is licensed under the MIT license.
-
-//  Node is used to make simple linked lists.
-
-//  A node has three fields: text, value, and next.
-
 #include "node.h"
 
 #include <stdio.h>

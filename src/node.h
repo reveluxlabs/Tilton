@@ -25,6 +25,9 @@
 
 class Text;
 
+// Node -- represents items in a simple linked lists.
+// A node has three fields: text, value, and next.
+
 class Node {
  public:
   explicit Node(Text* t);

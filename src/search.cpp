@@ -27,7 +27,7 @@
 #include "text.h"
 #include "macro.h"
 
-
+// jr 1Sep11
 SearchList::SearchList() {
     int i;
 
@@ -36,16 +36,20 @@ SearchList::SearchList() {
     }
 }
 
+// jr 1Sep11
 SearchList::~SearchList() {}
 
+// jr 1Sep11
 Macro* SearchList::the_macro_list(uint32 h) const {
     return the_macro_list_[h];
 }
 
+// jr 1Sep11
 void SearchList::set_the_macro_list(uint32 h, Macro* m) {
     the_macro_list_[h] = m;
 }
 
+// jr 1Sep11 (based on code written by Douglas Crockford)
 void SearchList::InsertIntoSearchList(Text* name, Macro* m) {
     uint32 h = name->Hash() & MaxHash;
     m->set_name(name);
@@ -53,18 +57,14 @@ void SearchList::InsertIntoSearchList(Text* name, Macro* m) {
     SearchList::set_the_macro_list(h, m);
 }
 
-//  addMacro -- This is a little faster than InstallMacro() because it assumes that
-//  the name is not already in the macro list.
-
+// jr 1Sep11 (based on code written by Douglas Crockford)
 void SearchList::InstallMacro(const char* namestring, const char* string) {
     Text* name = new Text(namestring);
     SearchList::InsertIntoSearchList(name, new Macro(string));
     delete name;
 }
 
-//  lookup - search through the macro list for a text with a specific name.
-//  The list is a hash table with links for collisions.
-
+// jr 1Sep11 (based on code written by Douglas Crockford)
 Macro* SearchList::LookupMacro(Text* name) {
     Macro* m = SearchList::the_macro_list(name->Hash() & MaxHash);
     while (m) {
@@ -76,11 +76,7 @@ Macro* SearchList::LookupMacro(Text* name) {
     return m;
 }
 
-
-//  install - if there is a text in the macro list with this name, set its
-//  value. Otherwise, make a new text with this name and value and put
-//  it in the list.
-
+// jr 1Sep11 (based on code written by Douglas Crockford)
 void SearchList::InstallMacro(Text* name, Text* value) {
     Macro* m = SearchList::LookupMacro(name);
     if (m) {
@@ -90,6 +86,7 @@ void SearchList::InstallMacro(Text* name, Text* value) {
     }
 }
 
+// jr 1Sep11 (based on code written by Douglas Crockford)
 void SearchList::InstallMacro(Text* name, Macro* value) {
   Macro* m = SearchList::LookupMacro(name);
   if (m) {
@@ -99,6 +96,7 @@ void SearchList::InstallMacro(Text* name, Macro* value) {
   }
 }
 
+// jr 1Sep11 (based on code written by Douglas Crockford)
 void SearchList::PrintMacroTable() {
     int i;
     for (i = 0; i < (MaxHash + 1); i += 1) {
@@ -109,6 +107,7 @@ void SearchList::PrintMacroTable() {
     }
 }
 
+// jr 1Sep11 (based on code written by Douglas Crockford)
 Macro* SearchList::GetMacroDefOrInsertNull(Text* name) {
     Macro* t = SearchList::LookupMacro(name);
     if (!t) {

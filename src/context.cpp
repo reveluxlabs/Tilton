@@ -206,7 +206,7 @@ void Context::ParseTilde(Iter* in, int &depth, Text* &the_output,
         arg = new_context->first_;
         //    <~NUMBER~>
         arg_text = arg->text_;
-        arg_number = arg_text->getChar(0) - '0';
+        arg_number = arg_text->GetCharacter(0) - '0';
         if (Text::isDigit(arg_number)) {
           arg_number = arg_text->ConvertAlphaToInteger();
           if (arg_number >= 0) {

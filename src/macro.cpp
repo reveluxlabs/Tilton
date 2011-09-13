@@ -19,18 +19,6 @@
 //
 // This version of Tilton is licensed under the MIT license.
 
-//  Macro wraps a string, and provides methods for setting and modifying the
-//  string and for doing I/O with it. A Macro can also have a name, which
-//  is used as a macro name. A Macro can have a link which can chain Macros
-//  together. This is used to manage hash collisions.
-
-//  The encoding of strings is UTF-8 (the 8-bit form of Unicode). A character
-//  is between 1 and 4 bytes in length. The utfLength and utfSubstr methods
-//  count multibyte characters. However, if a multibyte character appears to
-//  be badly formed, it will interpret the first byte as a single byte
-//  character. So while expecting UTF-8 encoded strings, it will usually
-//  do the right thing with Latin-1 and similar encodings.
-
 #include "macro.h"
 
 #include <string>
@@ -39,20 +27,22 @@
 
 #include "tilton.h"
 
-// constructors
-
+// jr 11Sep11
 Macro::Macro() {
     InitializeMacro(NULL, 0);
 }
 
+// jr 11Sep11
 Macro::Macro(int len) {
     InitializeMacro(NULL, len);
 }
 
+// jr 11Sep11
 Macro::Macro(const char* s) {
     InitializeMacro(s, static_cast<int>(strlen(s)));
 }
 
+// jr 11Sep11
 Macro::Macro(Text* t) {
     if (t) {
         InitializeMacro(t->string_, t->length_);
@@ -61,14 +51,13 @@ Macro::Macro(Text* t) {
     }
 }
 
+// jr 11Sep11
 Macro::~Macro() {
     delete this->definition_;
     delete this->name_;
 }
 
-
-// append string
-
+// jr 11Sep11
 void Macro::AddToString(const char* s, int len) {
     if (s && len) {
         CheckLengthAndIncrease(len);
@@ -78,20 +67,14 @@ void Macro::AddToString(const char* s, int len) {
     }
 }
 
-
-// append text
-
+// jr 11Sep11
 void Macro::AddToString(Text* t) {
     if (t) {
         AddToString(t->string_, t->length_);
     }
 }
 
-
-//  If the requested amount does not fit within the allocated max length,
-//  then increase the size of the string. The new allocation will be at least
-//  twice the previous allocation.
-
+// jr 11Sep11
 void Macro::CheckLengthAndIncrease(int len) {
     int newMaxLength;
     int req = length_ + len;
@@ -108,7 +91,7 @@ void Macro::CheckLengthAndIncrease(int len) {
     }
 }
 
-
+// jr 11Sep11
 void Macro::PrintMacroList() {
     Macro* t = this;
     while (t) {
@@ -122,9 +105,7 @@ void Macro::PrintMacroList() {
     }
 }
 
-
-// find the first occurance of a substring
-
+// jr 11Sep11
 int Macro::FindFirstSubstring(Text *t) {
   int len = t->length_;
   char* s = t->string_;
@@ -149,7 +130,7 @@ int Macro::FindFirstSubstring(Text *t) {
   return -1;
 }
 
-
+// jr 11Sep11
 void Macro::InitializeMacro(const char* s, int len) {
     name_ = NULL;
     link_ = NULL;
@@ -167,9 +148,7 @@ void Macro::InitializeMacro(const char* s, int len) {
     }
 }
 
-
-// is name text
-
+// jr 11Sep11
 bool Macro::IsNameEqual(Text* t) {
     if (name_length_ != t->length_) {
         return false;
@@ -182,9 +161,7 @@ bool Macro::IsNameEqual(Text* t) {
     return true;
 }
 
-
-// find the last occurance of a substring
-
+// jr 11Sep11
 int Macro::FindLastSubstring(Text *t) {
   int len = t->length_;
   char* s = t->string_;
@@ -207,9 +184,7 @@ int Macro::FindLastSubstring(Text *t) {
   return -1;
 }
 
-
-// set text
-
+// jr 11Sep11
 void Macro::set_string(Text* t) {
     my_hash_ = 0;
     if (t && t->length_) {
@@ -225,16 +200,12 @@ void Macro::set_string(Text* t) {
     }
 }
 
-
-// set name with c-string
-
+// jr 11Sep11
 void Macro::set_name(const char* s) {
     set_name(s, static_cast<int>(strlen(s)));
 }
 
-
-// set name with string
-
+// jr 11Sep11
 void Macro::set_name(const char* s, int len) {
     delete name_;
     name_length_ = len;
@@ -242,16 +213,12 @@ void Macro::set_name(const char* s, int len) {
     memmove(name_, s, name_length_);
 }
 
-
-// set name with text
-
+// jr 11Sep11
 void Macro::set_name(Text* t) {
     set_name(t->string_, t->length_);
 }
 
-
-//  substring
-
+// jr 11Sep11
 void Macro::ReplaceDefWithSubstring(int start, int len) {
     memmove(definition_, &definition_[start], len);
     length_ = len;
