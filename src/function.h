@@ -1,22 +1,6 @@
-//  function.h: interface for the Function Context class
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
 #ifndef SRC_FUNCTION_H_
 #define SRC_FUNCTION_H_
@@ -25,7 +9,7 @@
 #include <string>
 
 #include "tilton.h"
-#include "search.h"
+#include "hash_table.h"
 #include "context.h"
 #include "node.h"
 #include "macro.h"
@@ -257,8 +241,8 @@ class DefineFunction {
 
   static void evaluate(Context* context, Text* &the_output) {
     int position = the_output->length_;
-    the_output->AddToString(context->GetArgument(ArgTwo)->text_);
-    Text* name = context->EvaluateArgument(ArgOne, the_output);
+    the_output->AddToString(context->GetArgument(kArgTwo)->text_);
+    Text* name = context->EvaluateArgument(kArgOne, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
@@ -277,7 +261,7 @@ class DefinedFunction {
   the_output->AddToString(
       context->EvaluateArgument(
         MacroTable::instance()->macro_table()->
-        LookupMacro(context->EvaluateArgument(ArgOne, the_output)) ? ArgTwo : ArgThree, the_output));
+        LookupMacro(context->EvaluateArgument(kArgOne, the_output)) ? kArgTwo : kArgThree, the_output));
   }
 };
 
@@ -340,7 +324,7 @@ class EntityifyFunction {
   virtual ~EntityifyFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    Text* t = context->EvaluateArgument(ArgOne, the_output);
+    Text* t = context->EvaluateArgument(kArgOne, the_output);
     int c;
     int i;
     if (t && t->length_) {
@@ -403,7 +387,7 @@ class EvalFunction {
     new_context->AddArgument("<~6~>");
     new_context->AddArgument("<~7~>");
     new_context->AddArgument("<~8~>");
-    new_context->ParseAndEvaluate(context->GetArgument(ArgOne)->text_, the_output);
+    new_context->ParseAndEvaluate(context->GetArgument(kArgOne)->text_, the_output);
     delete new_context;
   }
 };
@@ -442,7 +426,7 @@ class FirstFunction {
     }
     the_output->AddToString(macro->definition_, r);
     macro->ReplaceDefWithSubstring(r + len, macro->length_ - (r + len));
-    arg = context->previous_->GetArgument(ArgZero);
+    arg = context->previous_->GetArgument(kArgZero);
     delete arg->text_;
     arg->text_ = NULL;
     delete arg->value_;
@@ -515,7 +499,7 @@ class IncludeFunction {
   static void evaluate(Context* context, Text* &the_output) {
     // Node* n = context->first_->next_;
     Text* string = new Text();
-    Text* name = context->EvaluateArgument(ArgOne, the_output);
+    Text* name = context->EvaluateArgument(kArgOne, the_output);
     if (!string->ReadFromFile(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
@@ -543,7 +527,7 @@ class LastFunction {
 
   static void evaluate(Context* context, Text* &the_output) {
     Node* n = context->first_->next_;
-    Text* name = context->EvaluateArgument(ArgOne, the_output);
+    Text* name = context->EvaluateArgument(kArgOne, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
@@ -570,7 +554,7 @@ class LastFunction {
     the_output->AddToString(macro->definition_ + r + len,
                       macro->length_ - (r + len));
     macro->length_ = r;
-    n = context->previous_->GetArgument(ArgZero);
+    n = context->previous_->GetArgument(kArgZero);
     delete n->text_;
     n->text_ = NULL;
     delete n->value_;
@@ -596,7 +580,7 @@ class LengthFunction {
   virtual ~LengthFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    the_output->AddNumberToString(context->EvaluateArgument(ArgOne, the_output)->utfLength());
+    the_output->AddNumberToString(context->EvaluateArgument(kArgOne, the_output)->utfLength());
   }
 };
 
@@ -607,7 +591,7 @@ class LiteralFunction {
   virtual ~LiteralFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    the_output->AddToString(context->GetArgument(ArgOne)->text_);
+    the_output->AddToString(context->GetArgument(kArgOne)->text_);
   }
 };
 
@@ -619,10 +603,10 @@ class LoopFunction {
 
   static void evaluate(Context* context, Text* &the_output) {
     // Node* n = context->first_->next_;
-    while (context->EvaluateArgument(ArgOne, the_output)->length_ > 0) {
-        context->ResetArgument(ArgOne);
-        context->ResetArgument(ArgTwo);
-        the_output->AddToString(context->EvaluateArgument(ArgTwo, the_output));
+    while (context->EvaluateArgument(kArgOne, the_output)->length_ > 0) {
+        context->ResetArgument(kArgOne);
+        context->ResetArgument(kArgTwo);
+        the_output->AddToString(context->EvaluateArgument(kArgTwo, the_output));
     }
   }
 };
@@ -703,7 +687,7 @@ class NumberFunction {
   virtual ~NumberFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    number num = context->EvaluateArgument(ArgOne, the_output)->getNumber();
+    number num = context->EvaluateArgument(kArgOne, the_output)->getNumber();
     the_output->AddToString(context->EvaluateArgument(num != NAN ? 2 : 3, the_output));
   }
 };
@@ -747,7 +731,7 @@ class ReadFunction {
 
   static void evaluate(Context* context, Text* &the_output) {
     Text* string = new Text();
-    Text* name = context->EvaluateArgument(ArgOne, the_output);
+    Text* name = context->EvaluateArgument(kArgOne, the_output);
     if (!string->ReadFromFile(name)) {
         context->ReportErrorAndDie("Error in reading file", name);
     }
@@ -764,8 +748,8 @@ class RepFunction {
 
   static void evaluate(Context* context, Text* &the_output) {
     // Node* n = context->first_->next_;
-    Text* value = context->EvaluateArgument(ArgOne, the_output);
-    for (number num = context->EvaluateNumber(ArgTwo, the_output); num > 0; num -= 1) {
+    Text* value = context->EvaluateArgument(kArgOne, the_output);
+    for (number num = context->EvaluateNumber(kArgTwo, the_output); num > 0; num -= 1) {
         the_output->AddToString(value);
     }
   }
@@ -778,12 +762,12 @@ class SetFunction {
   virtual ~SetFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    Text* name = context->EvaluateArgument(ArgOne, the_output);
+    Text* name = context->EvaluateArgument(kArgOne, the_output);
     if (name->length_ < 1) {
         context->ReportErrorAndDie("Missing name");
     }
     MacroTable::instance()->macro_table()->
-      InstallMacro(name, context->EvaluateArgument(ArgTwo, the_output));
+      InstallMacro(name, context->EvaluateArgument(kArgTwo, the_output));
   }
 };
 
@@ -794,7 +778,7 @@ class SlashifyFunction {
   virtual ~SlashifyFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    Text* t = context->EvaluateArgument(ArgOne, the_output);
+    Text* t = context->EvaluateArgument(kArgOne, the_output);
     int c;
     int i;
     if (t && t->length_) {
@@ -820,7 +804,7 @@ class StopFunction {
   virtual ~StopFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    context->ReportErrorAndDie("Stop", context->EvaluateArgument(ArgOne, the_output));
+    context->ReportErrorAndDie("Stop", context->EvaluateArgument(kArgOne, the_output));
   }
 };
 
@@ -857,7 +841,7 @@ class SubstrFunction {
         }
         if (num >= 0 && ber > 0) {
             the_output->AddToString(
-                context->EvaluateArgument(ArgOne, the_output)->utfSubstr(static_cast<int>(num),
+                context->EvaluateArgument(kArgOne, the_output)->utfSubstr(static_cast<int>(num),
                                                static_cast<int>(ber)));
         }
     }
@@ -923,8 +907,8 @@ class WriteFunction {
   virtual ~WriteFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    Text* name = context->EvaluateArgument(ArgOne, the_output);
-    if (!context->EvaluateArgument(ArgTwo, the_output)->WriteToFile(name)) {
+    Text* name = context->EvaluateArgument(kArgOne, the_output);
+    if (!context->EvaluateArgument(kArgTwo, the_output)->WriteToFile(name)) {
       context->ReportErrorAndDie("Error in writing file", name);
     }
   }

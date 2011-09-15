@@ -1,30 +1,14 @@
-//  context.h: interface for the context class.
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
 #ifndef SRC_CONTEXT_H_
 #define SRC_CONTEXT_H_
 
 #include "tilton.h"
-#include "iter.h"
+#include "byte_stream.h"
 
-class Iter;
+class ByteStream;
 class Text;
 class Node;
 
@@ -32,7 +16,7 @@ class Node;
 
 class Context {
  public:
-  Context(Context*, Iter*);
+  Context(Context*, ByteStream*);
   virtual ~Context();
 
   // AddArgument
@@ -91,15 +75,15 @@ class Context {
 
   // ParseLeftAngle
   // Parse and eval the text following a left angle bracket
-  void ParseLeftAngle(Iter* in, int &depth, Text* &the_output,
+  void ParseLeftAngle(ByteStream* in, int &depth, Text* &the_output,
                          int &tildes_seen, Context* &new_context);
 
   // ParseTilde
-  void ParseTilde(Iter* in, int &depth, Text* &the_output,
+  void ParseTilde(ByteStream* in, int &depth, Text* &the_output,
                      int &tildes_seen, Context* &new_context);
 
   // ParseEOT
-  void ParseEOT(Iter* in, int &depth, Text* &the_output,
+  void ParseEOT(ByteStream* in, int &depth, Text* &the_output,
                    int &tildes_seen, Context* &new_context);
 
   // EvaluateMacro
@@ -113,7 +97,7 @@ class Context {
   // Examines the input stream for a run of tildes
   // Returns the number of consecutive tildes at the beginning
   // of the stream and removes them
-  int checkForTilde(Iter* in, int no) {
+  int checkForTilde(ByteStream* in, int no) {
     while (in->next() == '~') {
       no += 1;
     }
@@ -138,7 +122,7 @@ class Context {
   int     index_;
   int     line_;
   int     position_;
-  Iter*   source_;
+  ByteStream*   source_;
   Node*   last_;
 };
 

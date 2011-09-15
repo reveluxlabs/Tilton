@@ -44,11 +44,11 @@ end
 
 # File Dependencies
 file "tilton.o"      => ['tilton.cpp', 'tilton.h', 'context.o', 'node.o', 'function.o', 'option.o']
-file "context.o"     => ['context.cpp', 'context.h', 'tilton.h', 'iter.o', 'node.o', 'search.o', 'text.o', 'macro.o']
+file "context.o"     => ['context.cpp', 'context.h', 'tilton.h', 'byte_stream.o', 'node.o', 'hash_table.o', 'text.o', 'macro.o']
 file "node.o"        => ['node.cpp', 'node.h', 'tilton.h']
 file "text.o"        => ['text.cpp', 'text.h', 'tilton.h', 'macro.o']
-file "iter.o"        => ['iter.cpp', 'iter.h', 'tilton.h']
-file "search.o"      => ['search.cpp', 'search.h', 'tilton.h']
-file "function.o"    => ['function.cpp', 'function.h', 'tilton.h', 'search.o', 'node.o', 'macro.o', 'context.o']
+file "byte_stream.o" => ['byte_stream.cpp', 'byte_stream.h', 'tilton.h']
+file "hash_table.o"  => ['hash_table.cpp', 'hash_table.h', 'tilton.h']
+file "function.o"    => ['function.cpp', 'function.h', 'tilton.h', 'hash_table.o', 'node.o', 'macro.o', 'context.o']
 file "macro.o"       => ['macro.cpp', 'macro.h', 'tilton.h']
 file "option.o"      => ['option.cpp', 'option.h', 'tilton.h']

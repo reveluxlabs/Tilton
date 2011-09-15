@@ -1,22 +1,6 @@
-// text.h: interface for the Text class.
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
 #ifndef SRC_TEXT_H_
 #define SRC_TEXT_H_
@@ -26,6 +10,19 @@
 
 class Context;
 class Macro;
+
+// Text
+//  Text wraps a string, and provides methods for setting and modifying the
+//  string and for doing I/O with it. A Text can also have a name, which
+//  is used as a macro name. A Text can have a link which can chain Texts
+//  together. This is used to manage hash collisions.
+
+//  The encoding of strings is UTF-8 (the 8-bit form of Unicode). A character
+//  is between 1 and 4 bytes in length. The utfLength and utfSubstr methods
+//  count multibyte characters. However, if a multibyte character appears to
+//  be badly formed, it will interpret the first byte as a single byte
+//  character. So while expecting UTF-8 encoded strings, it will usually
+//  do the right thing with Latin-1 and similar encodings.
 
 class Text {
  public:

@@ -1,23 +1,6 @@
-// context.cpp
-// For interface defintions, see context.h
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
 //  Context is the key datastructure in Tilton. It keeps a collection of
 //  parameters in numbered slots. We keep in each slot a raw string
@@ -33,15 +16,15 @@
 #include <stdio.h>
 
 #include "function.h"
-#include "iter.h"
+#include "byte_stream.h"
 #include "macro.h"
 #include "node.h"
-#include "search.h"
+#include "hash_table.h"
 #include "tilton.h"
 #include "text.h"
 
 
-Context::Context(Context* prev, Iter* s) {
+Context::Context(Context* prev, ByteStream* s) {
     position_ = 0;
     first_ = NULL;
     last_ = NULL;
@@ -119,7 +102,7 @@ void Context::ParseAndEvaluate(Text* input, Text* &the_output) {
   int depth = 0;         // depth of nested <~ ~>
   int tildes_seen= 0;     // the number of tildes in the separator ~~~
   Context* new_context = NULL;
-  Iter* in = new Iter(input);
+  ByteStream* in = new ByteStream(input);
 
   // Loop over the characters in the input
 
@@ -143,7 +126,7 @@ void Context::ParseAndEvaluate(Text* input, Text* &the_output) {
   }
 }
 
-void Context::ParseLeftAngle(Iter* in, int &depth, Text* &the_output,
+void Context::ParseLeftAngle(ByteStream* in, int &depth, Text* &the_output,
                         int &tildes_seen, Context* &new_context) {
   int run_length;  // the number of tildes currently under consideration
 
@@ -165,7 +148,7 @@ void Context::ParseLeftAngle(Iter* in, int &depth, Text* &the_output,
   }
 }
 
-void Context::ParseTilde(Iter* in, int &depth, Text* &the_output,
+void Context::ParseTilde(ByteStream* in, int &depth, Text* &the_output,
                         int &tildes_seen, Context* &new_context) {
   int arg_number;    // argument number
   Node* arg;         // current arg
@@ -257,7 +240,7 @@ void Context::EvaluateMacro(Context* &new_context, Text* &the_output) {
   Text* name;
   Builtin function;
 
-  name = new_context->EvaluateArgument(ArgZero, the_output);
+  name = new_context->EvaluateArgument(kArgZero, the_output);
   // look for name as built in
   function = FunctionContext::instance()->GetFunction(name->string_);
   if (function) {
@@ -276,7 +259,7 @@ void Context::EvaluateMacro(Context* &new_context, Text* &the_output) {
   new_context = NULL;
 }
 
-void Context::ParseEOT(Iter* in, int &depth, Text* &the_output,
+void Context::ParseEOT(ByteStream* in, int &depth, Text* &the_output,
                       int &tildes_seen, Context* &new_context) {
     if (!stackEmpty(depth)) {
         new_context->ReportErrorAndDie("Missing ~>");

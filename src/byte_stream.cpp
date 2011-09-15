@@ -1,28 +1,12 @@
-// iter.cpp: implementation of the Iter class.
-// For interface definitions, see iter.h
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
-// Iter is just a convenient way of processing a text.
+
+// ByteStream is just a convenient way of processing a text.
 // It keeps track of lines for error messages.
 
-#include "iter.h"
+#include "byte_stream.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,19 +14,19 @@
 #include "tilton.h"
 #include "text.h"
 
-Iter::Iter(Text* t) {
+ByteStream::ByteStream(Text* t) {
     text = t;
     line = character = index = 0;
 }
 
 
-Iter::~Iter() {
+ByteStream::~ByteStream() {
 }
 
 
 // back up one character.
 
-int Iter::back() {
+int ByteStream::back() {
     if (text) {
         index -= 1;
         character -= 1;
@@ -55,7 +39,7 @@ int Iter::back() {
 
 // return the next character.
 
-int Iter::next() {
+int ByteStream::next() {
     if (text) {
         int c = text->GetCharacter(index);
         index += 1;
@@ -73,7 +57,7 @@ int Iter::next() {
 
 // peek ahead one character
 
-int Iter::peek() {
+int ByteStream::peek() {
     if (text) {
         return text->GetCharacter(index);
     } else {

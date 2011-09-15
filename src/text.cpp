@@ -1,35 +1,7 @@
-// text.cpp: implementation of the Text class.
-// For interface definitions, see text.h
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
-//  Text wraps a string, and provides methods for setting and modifying the
-//  string and for doing I/O with it. A Text can also have a name, which
-//  is used as a macro name. A Text can have a link which can chain Texts
-//  together. This is used to manage hash collisions.
-
-//  The encoding of strings is UTF-8 (the 8-bit form of Unicode). A character
-//  is between 1 and 4 bytes in length. The utfLength and utfSubstr methods
-//  count multibyte characters. However, if a multibyte character appears to
-//  be badly formed, it will interpret the first byte as a single byte
-//  character. So while expecting UTF-8 encoded strings, it will usually
-//  do the right thing with Latin-1 and similar encodings.
 #include "text.h"
 
 #include <string.h>
@@ -39,31 +11,26 @@
 #include "tilton.h"
 #include "macro.h"
 
-// jr 11Sep11
 Text::Text() {
     InitializeText(NULL, 0);
 }
 
 
-// jr 11Sep11
 Text::Text(int len) {
     InitializeText(NULL, len);
 }
 
 
-// jr 11Sep11
 Text::Text(const char* s) {
     InitializeText(s, static_cast<int>(strlen(s)));
 }
 
 
-// jr 11Sep11
 Text::Text(const char* s, int len) {
     InitializeText(s, len);
 }
 
 
-// jr 11Sep11
 Text::Text(Text* t) {
     if (t) {
         InitializeText(t->string_, t->length_);
@@ -72,7 +39,6 @@ Text::Text(Text* t) {
     }
 }
 
-// jr 11Sep11
 Text::Text(Macro* m) {
   if (m) {
     // copy string
@@ -92,14 +58,12 @@ Text::Text(Macro* m) {
   }
 }
 
-// jr 11Sep11
 Text::~Text() {
     delete this->string_;
     delete this->name_;
 }
 
 
-// jr 11Sep11
 void Text::AddToString(int c) {
     CheckLengthAndIncrease(1);
     string_[length_] = static_cast<char>(c);
@@ -108,7 +72,6 @@ void Text::AddToString(int c) {
 }
 
 
-// jr 11Sep11
 void Text::AddToString(int c, int n) {
     CheckLengthAndIncrease(n);
     while (n > 0) {
@@ -120,7 +83,6 @@ void Text::AddToString(int c, int n) {
 }
 
 
-// jr 11Sep11
 void Text::AddToString(const char* s) {
     if (s) {
         AddToString(s, static_cast<int>(strlen(s)));
@@ -128,7 +90,6 @@ void Text::AddToString(const char* s) {
 }
 
 
-// jr 11Sep11
 void Text::AddToString(const char* s, int len) {
     if (s && len) {
         CheckLengthAndIncrease(len);
@@ -139,7 +100,6 @@ void Text::AddToString(const char* s, int len) {
 }
 
 
-// jr 11Sep11
 void Text::AddToString(Text* t) {
     if (t) {
         AddToString(t->string_, t->length_);
@@ -147,7 +107,6 @@ void Text::AddToString(Text* t) {
 }
 
 
-// jr 11Sep11
 void Text::AddNumberToString(number n) {
     number d;
     if (n != NAN) {
@@ -164,7 +123,6 @@ void Text::AddNumberToString(number n) {
     }
 }
 
-// jr 11Sep11
 //  If the requested amount does not fit within the allocated max length,
 //  then increase the size of the string. The new allocation will be at least
 //  twice the previous allocation.
@@ -184,7 +142,6 @@ void Text::CheckLengthAndIncrease(int len) {
     }
 }
 
-// jr 11Sep11
 int Text::GetCharacter(int index) {
     if (index >= 0 && index < length_) {
         return string_[index];
@@ -193,7 +150,6 @@ int Text::GetCharacter(int index) {
     }
 }
 
-// jr 11Sep11
 number Text::getNumber() {
   int c;
   int i = 0;
@@ -260,7 +216,6 @@ number Text::getNumber() {
   }
 }
 
-// jr 11Sep11
 void Text::InitializeText(const char* s, int len) {
     name_ = NULL;
     length_ = name_length_ = 0;
@@ -278,7 +233,6 @@ void Text::InitializeText(const char* s, int len) {
 }
 
 
-// jr 11Sep11
 void Text::ReadStdInput() {
     char buffer[10240];
     int len;
@@ -295,7 +249,6 @@ void Text::ReadStdInput() {
 }
 
 
-// jr 11Sep11
 bool Text::IsEqual(Text* t) {
     int i;
     if (length_ != t->length_) {
@@ -310,7 +263,6 @@ bool Text::IsEqual(Text* t) {
 }
 
 
-// jr 11Sep11
 bool Text::lt(Text* t) {
     // refactored to seperate all digits from text -- jr 28Aug11
     if (this->allDigits() && t->allDigits()) {
@@ -320,7 +272,6 @@ bool Text::lt(Text* t) {
     }
 }
 
-// jr 11Sep11
 bool Text::ltNum(Text* t) {
     int first, second;
 
@@ -329,7 +280,6 @@ bool Text::ltNum(Text* t) {
     return first < second;
 }
 
-// jr 11Sep11
 bool Text::ltStr(Text* t) {
     // original lt
     int len = t->length_;
@@ -345,13 +295,11 @@ bool Text::ltStr(Text* t) {
 }
 
 
-// jr 11Sep11
 void Text::WriteStdOutput() {
     fwrite(string_, sizeof(char), length_, stdout);
 }
 
 
-// jr 11Sep11
 bool Text::ReadFromFile(Text* filename) {
   FILE *fp;
   char buffer[10240];
@@ -384,7 +332,6 @@ bool Text::ReadFromFile(Text* filename) {
 }
 
 
-// jr 11Sep11
 void Text::set_string(Text* t) {
     my_hash_ = 0;
     if (t && t->length_) {
@@ -401,13 +348,11 @@ void Text::set_string(Text* t) {
 }
 
 
-// jr 11Sep11
 void Text::set_name(const char* s) {
     set_name(s, static_cast<int>(strlen(s)));
 }
 
 
-// jr 11Sep11
 void Text::set_name(const char* s, int len) {
     delete name_;
     name_length_ = len;
@@ -416,20 +361,17 @@ void Text::set_name(const char* s, int len) {
 }
 
 
-// jr 11Sep11
 void Text::set_name(Text* t) {
     set_name(t->string_, t->length_);
 }
 
 
-// jr 11Sep11
 void Text::substr(int start, int len) {
     memmove(string_, &string_[start], len);
     length_ = len;
 }
 
 
-// jr 11Sep11
 Text* Text::RemoveFromString(int index) {
     if (index >= 0 && index < length_) {
         int len = length_ - index;
@@ -441,7 +383,6 @@ Text* Text::RemoveFromString(int index) {
     }
 }
 
-// jr 11Sep11
 // trim is like append, except that it trims leading, trailing spaces, and
 // reduces runs of whitespace to single space
 void Text::RemoveSpacesAddToString(Text* t) {
@@ -471,7 +412,6 @@ void Text::RemoveSpacesAddToString(Text* t) {
 }
 
 
-// jr 11Sep11
 int Text::utfLength() {
     int c;
     int i = 0;
@@ -505,7 +445,6 @@ int Text::utfLength() {
 }
 
 
-// jr 11Sep11
 Text* Text::utfSubstr(int start, int len) {
     int c;
     int i = 0;
@@ -572,7 +511,6 @@ Text* Text::utfSubstr(int start, int len) {
 }
 
 
-// jr 11Sep11
 bool Text::WriteToFile(Text* filename) {
     FILE *fp;
     char fname[256];
@@ -605,7 +543,6 @@ bool Text::WriteToFile(Text* filename) {
   c -= a; c -= b; c ^= (b >> 15); \
 }
 
-// jr 11Sep11
 uint32 Text::Hash() {
     if (my_hash_) {
         return my_hash_;  // If we have already memoized the hash, use it.

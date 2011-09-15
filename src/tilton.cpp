@@ -1,23 +1,7 @@
-// tilton.cpp
-// For interface definition, see tilton.h
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
+
 #include "tilton.h"
 
 #include <stdio.h>
@@ -61,7 +45,7 @@ void MacroProcessor::CreateOptionProcessors() {
 }
 
 void MacroProcessor::InstallTiltonMacros() {
-  SearchList* macro_table = MacroTable::instance()->macro_table();
+  HashTable* macro_table = MacroTable::instance()->macro_table();
 
   macro_table->InstallMacro("gt", ">");
   macro_table->InstallMacro("lt", "<");
@@ -116,7 +100,7 @@ void MacroProcessor::Run(bool go) {
 // Singleton implementation for macro list
 
 MacroTable::MacroTable() {
-  macro_table_ = new SearchList();
+  macro_table_ = new HashTable();
 }
 
 MacroTable::~MacroTable() {

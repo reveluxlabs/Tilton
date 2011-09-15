@@ -9,14 +9,9 @@
 //  2006-10-05
 //
 
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
 
 #ifndef SRC_TILTON_H_
 #define SRC_TILTON_H_
@@ -24,10 +19,10 @@
 #include <map>
 #define EOT (-1)
 
-const int ArgZero  = 0;
-const int ArgOne   = 1;
-const int ArgTwo   = 2;
-const int ArgThree = 3;
+const int kArgZero  = 0;
+const int kArgOne   = 1;
+const int kArgTwo   = 2;
+const int kArgThree = 3;
 
 class Context;
 class Text;
@@ -58,7 +53,7 @@ typedef unsigned      char uint8;    /* unsigned 1-byte quantities */
 class Context;
 class Text;
 class OptionProcessor;
-class SearchList;
+class HashTable;
 
 // MacroProcessor -- coordinator for macro processing
 
@@ -101,11 +96,11 @@ class MacroTable {
 
   // macro_table
   // Retrieve the macro table
-  SearchList* macro_table() { return macro_table_; }
+  HashTable* macro_table() { return macro_table_; }
 
  private:
   static MacroTable*  pInstance;
-  SearchList*         macro_table_;
+  HashTable*         macro_table_;
 
 };
 

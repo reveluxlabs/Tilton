@@ -1,23 +1,8 @@
 // option.cpp
-// For interface definition, see option.h
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-06
-//
-
-// Updated for OS X and Debian by JR at Revelux Labs
-//
-// Version 0.7
-// 1Sep11
-//
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
-//
-// This version of Tilton is licensed under the MIT license.
+// Use of this source code is governed by a MIT-style license that can be
+// found in the LICENSE file.
+
 #include "option.h"
 
 #include <stdio.h>
@@ -25,7 +10,7 @@
 
 #include "text.h"
 #include "context.h"
-#include "search.h"
+#include "hash_table.h"
 #include "node.h"
 
 OptionProcessor::OptionProcessor() {}
