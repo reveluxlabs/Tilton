@@ -109,7 +109,7 @@ void Text::AddToString(Text* t) {
 
 void Text::AddNumberToString(number n) {
     number d;
-    if (n != NAN) {
+    if (n != kNAN) {
         if (n < 0) {
             AddToString('-');
             n = -n;
@@ -158,14 +158,14 @@ number Text::getNumber() {
   number value = 0;
 
   if (length_ == 0) {
-    return NAN;  // joh 31Aug11
+    return kNAN;  // joh 31Aug11
   }
 
   for (;;) {
     c = string_[i];
     i += 1;
     if (i > length_) {
-        return NAN;
+        return kNAN;
     }
     if (c > ' ') {
         break;
@@ -176,7 +176,7 @@ number Text::getNumber() {
     c = string_[i];
     i += 1;
     if (i > length_) {
-        return NAN;
+        return kNAN;
     }
   }
   for (;;) {
@@ -190,7 +190,7 @@ number Text::getNumber() {
     } else {
      for (;;) {
         if (c > ' ') {
-            return NAN;
+            return kNAN;
         }
         if (i >= length_) {
             break;
@@ -212,7 +212,7 @@ number Text::getNumber() {
         return value;
     }
   } else {
-    return NAN;
+    return kNAN;
   }
 }
 

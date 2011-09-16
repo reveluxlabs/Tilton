@@ -1,14 +1,3 @@
-// tilton.h: constants for Tilton
-
-//
-//  Tilton Macro Processor
-//
-//  Tilton is a simple macro processor. It is small,
-//  portable, and Unicode compatible.
-//  Written by Douglas Crockford [ www.crockford.com/tilton ]
-//  2006-10-05
-//
-
 // Copyright (c) 2011 Revelux Labs, LLC. All rights reserved.
 // Use of this source code is governed by a MIT-style license that can be
 // found in the LICENSE file.
@@ -17,6 +6,9 @@
 #define SRC_TILTON_H_
 
 #include <map>
+
+#include "tiltonfwd.h"
+
 #define EOT (-1)
 
 const int kArgZero  = 0;
@@ -24,8 +16,6 @@ const int kArgOne   = 1;
 const int kArgTwo   = 2;
 const int kArgThree = 3;
 
-class Context;
-class Text;
 
 // Builtin is the signature for built-in functions
 typedef void (*Builtin)(Context* context, Text* &the_output);
@@ -34,26 +24,23 @@ typedef void (*Builtin)(Context* context, Text* &the_output);
 
 typedef long number;
 
-// INFINITY is the largest positive integer than can be held in a number.
+// kInfinity is the largest positive integer than can be held in a number.
 // This value may be system dependent.
 
 #define INFINITY ((number)0x7FFFFFFF)
+const number kInfinity = 0x7FFFFFFF;
 
-// NAN (not a number) is the smallest integer that can be held
-// in a number. On two's compliment machines, it is INFINITY + 1.
+// kNAN (not a number) is the smallest integer that can be held
+// in a number. On two's complement machines, it is kInfinity + 1.
 // This value may be system dependent.
 
 #define NAN ((number)0x80000000)
+const number kNAN = 0x80000000;
 
 // Unsigned ints are used in computing hash.
 
 typedef unsigned long int  uint32;   /* unsigned 4-byte quantities */
 typedef unsigned      char uint8;    /* unsigned 1-byte quantities */
-
-class Context;
-class Text;
-class OptionProcessor;
-class HashTable;
 
 // MacroProcessor -- coordinator for macro processing
 

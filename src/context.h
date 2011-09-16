@@ -13,6 +13,14 @@ class Text;
 class Node;
 
 // Context -- a stack frame for evaluation.
+//  Context is the key datastructure in Tilton. It keeps a collection of
+//  parameters in numbered slots. We keep in each slot a raw string
+//  and an evaluated value (for memoization).
+
+//  A Context can point to a previous context, which allows contexts to be
+//  nested. A Context can also include source information for use in error
+//  messages.
+
 
 class Context {
  public:

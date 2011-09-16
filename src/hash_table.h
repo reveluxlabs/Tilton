@@ -2,8 +2,8 @@
 // Use of this source code is governed by a MIT-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_SEARCH_H_
-#define SRC_SEARCH_H_
+#ifndef SRC_HASH_TABLE_H_
+#define SRC_HASH_TABLE_H_
 
 #include "tilton.h"
 
@@ -47,5 +47,5 @@ class HashTable {
   void  InsertIntoHashTable(Text* name, Macro* m);
 };
 
-#endif  // SRC_SEARCH_H_
+#endif  // SRC_HASH_TABLE_H_
 

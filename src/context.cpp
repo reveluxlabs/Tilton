@@ -2,14 +2,6 @@
 // Use of this source code is governed by a MIT-style license that can be
 // found in the LICENSE file.
 
-//  Context is the key datastructure in Tilton. It keeps a collection of
-//  parameters in numbered slots. We keep in each slot a raw string
-//  and an evaluated value (for memoization).
-
-//  A Context can point to a previous context, which allows contexts to be
-//  nested. A Context can also include source information for use in error
-//  messages.
-
 #include "context.h"
 
 #include <stdlib.h>
@@ -23,7 +15,6 @@
 #include "tilton.h"
 #include "text.h"
 
-
 Context::Context(Context* prev, ByteStream* s) {
     position_ = 0;
     first_ = NULL;
@@ -31,9 +22,9 @@ Context::Context(Context* prev, ByteStream* s) {
     previous_ = prev;
     source_ = s;
     if (s) {
-        line_ = s->line;
-        character_ = s->character;
-        index_ = s->index;
+        line_ = s->line();
+        character_ = s->character();
+        index_ = s->index();
     } else {
         line_ = 0;
         character_ = 0;
@@ -41,19 +32,13 @@ Context::Context(Context* prev, ByteStream* s) {
     }
 }
 
-
 Context::~Context() {
     delete this->first_;
 }
 
-
-// add a c-string to a context
-
 void Context::AddArgument(const char* s) {
     AddArgument(new Text(s));
 }
-
-//  add an argument to a context
 
 void Context::AddArgument(Text* t) {
     Node* p = new Node(t);
@@ -299,7 +284,7 @@ number Context::EvaluateNumber(Node* n, Text* &the_output) {
     return 0;
   }
   number num = EvaluateArgument(n, the_output)->getNumber();
-  if (num == NAN) {
+  if (num == kNAN) {
     ReportErrorAndDie("Not a number", EvaluateArgument(n, the_output));
   }
   return num;
@@ -339,7 +324,7 @@ void Context::FindError(Text* report) {
     previous_->FindError(report);
   }
   if (source_) {
-    report->AddToString(source_->text->name_, source_->text->name_length_);
+//    report->AddToString(source_->text()); //->name_, source_->text()->name_length_);
     report->AddToString('(');
     report->AddNumberToString(line_ + 1);
     report->AddToString(',');

@@ -66,7 +66,7 @@ class ArithmeticFunction {
                      number (*f)(number, number), Text* &the_output) {
      Node* n = context->first_->next_;
      if (n) {
-         if (num == NAN) {
+         if (num == kNAN) {
              num = context->EvaluateNumber(n, the_output);
              n = n->next_;
          }
@@ -76,8 +76,8 @@ class ArithmeticFunction {
                      break;
                  }
                  number d = context->EvaluateNumber(n, the_output);
-                 if (num == NAN || d == NAN) {
-                     num = NAN;
+                 if (num == kNAN || d == kNAN) {
+                     num = kNAN;
                      break;
                  }
                  num = f(num, d);
@@ -101,11 +101,11 @@ class ArithmeticFunction {
   }
 
   static number div(number first, number second) {
-     return second ? first / second : NAN;
+     return second ? first / second : kNAN;
   }
 
   static number mod(number first, number second) {
-     return second ? first % second : NAN;
+     return second ? first % second : kNAN;
   }
 };
 
@@ -302,7 +302,7 @@ class DivFunction: public ArithmeticFunction  {
   virtual ~DivFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    ArithmeticFunction::reduce(context, NAN, ArithmeticFunction::div, the_output);
+    ArithmeticFunction::reduce(context, kNAN, ArithmeticFunction::div, the_output);
   }
 };
 
@@ -629,7 +629,7 @@ class ModFunction: public ArithmeticFunction  {
   virtual ~ModFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    ArithmeticFunction::reduce(context, NAN, ArithmeticFunction::div, the_output);
+    ArithmeticFunction::reduce(context, kNAN, ArithmeticFunction::div, the_output);
   }
 };
 
@@ -688,7 +688,7 @@ class NumberFunction {
 
   static void evaluate(Context* context, Text* &the_output) {
     number num = context->EvaluateArgument(kArgOne, the_output)->getNumber();
-    the_output->AddToString(context->EvaluateArgument(num != NAN ? 2 : 3, the_output));
+    the_output->AddToString(context->EvaluateArgument(num != kNAN ? 2 : 3, the_output));
   }
 };
 
@@ -815,7 +815,7 @@ class SubFunction: public ArithmeticFunction {
   virtual ~SubFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    ArithmeticFunction::reduce(context, NAN, ArithmeticFunction::sub, the_output);
+    ArithmeticFunction::reduce(context, kNAN, ArithmeticFunction::sub, the_output);
   }
 };
 
@@ -834,7 +834,7 @@ class SubstrFunction {
         if (num < 0) {
             num += string->length_;
         }
-        number ber = INFINITY;
+        number ber = kInfinity;
         n = n->next_;
         if (n) {
             ber = context->EvaluateNumber(n, the_output);
