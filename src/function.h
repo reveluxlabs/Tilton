@@ -826,24 +826,25 @@ class SubstrFunction {
   virtual ~SubstrFunction();
 
   static void evaluate(Context* context, Text* &the_output) {
-    Node* n = context->first_->next_;
-    Text* string = context->EvaluateArgument(n, the_output);
-    n = n->next_;
-    if (n) {
-        number num = context->EvaluateNumber(n, the_output);
-        if (num < 0) {
-            num += string->length_;
-        }
-        number ber = kInfinity;
-        n = n->next_;
-        if (n) {
-            ber = context->EvaluateNumber(n, the_output);
-        }
-        if (num >= 0 && ber > 0) {
-            the_output->AddToString(
-                context->EvaluateArgument(kArgOne, the_output)->utfSubstr(static_cast<int>(num),
-                                               static_cast<int>(ber)));
-        }
+    Node* arg = context->first_->next_;
+    Text* string = context->EvaluateArgument(arg, the_output);
+    arg = arg->next_;
+    if (arg) {
+      number start = context->EvaluateNumber(arg, the_output);
+      if (start < 0) {
+        start += string->length_;
+      }
+      number len = kInfinity;
+      arg = arg->next_;
+      if (arg) {
+        len = context->EvaluateNumber(arg, the_output);
+      }
+      if (start >= 0 && len > 0) {
+        the_output->AddToString(
+            context->EvaluateArgument(kArgOne, the_output)->utfSubstr(
+                static_cast<int>(start),
+                static_cast<int>(len)));
+      }
     }
   }
 };

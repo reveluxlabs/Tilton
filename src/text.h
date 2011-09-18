@@ -34,7 +34,6 @@ class Text {
   explicit Text(Macro* t);
   virtual ~Text();
 
-  // AddToString
   // appends text to the string wrapped by Text
   void    AddToString(int c);
   void    AddToString(int c, int n);
@@ -42,42 +41,37 @@ class Text {
   void    AddToString(const char* s, int len);
   void    AddToString(Text* t);
   
-  // AddNumberToString
   // appends a number to the string wrapped by Text
   void    AddNumberToString(number);
+
+  // move an index into string_ to the next UTF-8 character
+  int AdvanceToNextChar(int index);
   
-  // GetCharacter
   // retrieve a character from string
   int     GetCharacter(int index);
   
-  // getNumber
   // retrieve a number from string
   number  getNumber();
   
-  // Hash
   // calculate a hash for a string
   uint32  Hash();
   
-  // ReadStdInput
   // Read from stdin and append to string
   void    ReadStdInput();
 
   bool    IsEqual(Text* t);
+  
   bool    lt(Text* t);
   
-  // WriteStdOutput
   // write string_ to stdout
   void    WriteStdOutput();
   
-  // ReadFromFile
   // read the file in 10K chunks and add to string_
   bool    ReadFromFile(Text* t);
   
-  // set_string
   // setter for string_
   void    set_string(Text* t);
   
-  // set_name
   // setter for name_
   void    set_name(const char* s);
   void    set_name(const char* s, int len);
@@ -86,31 +80,26 @@ class Text {
   void    substr(int start, int len);
   Text*   RemoveFromString(int index);
   
-  // RemoveSpacesAddToString
   // trims whitespace before appending to string_
   void    RemoveSpacesAddToString(Text* t);
   
   int     utfLength();
   Text*   utfSubstr(int start, int len);
   
-  // WriteToFile
   // writes string_ to a file
   bool    WriteToFile(Text* t);
 
-  // allDigits
   // Tests to see if a string is all digits
   bool    allDigits() {
     const char*   cset = "1234567890";
     return this->length_ == strspn(this->string_, cset);
   }
 
-  // isDigit
   // Tests to see if the arg is a digit
   static bool isDigit(int arg_number) {
     return arg_number >= 0 && arg_number <= 9;
   }
 
-  // ConvertAlphaToIntegrer
   // unlike atoi, this function knows about Text
   int ConvertAlphaToInteger() {
     int c;             // current character

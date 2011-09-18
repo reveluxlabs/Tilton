@@ -26,7 +26,6 @@ FunctionContext* FunctionContext::instance() {
 void FunctionContext::RegisterTiltonFunctions() {
 
   RegisterFunction("add",       AddFunction::evaluate);
-  RegisterFunction("add",       AddFunction::evaluate);
   RegisterFunction("and",       AndFunction::evaluate);
   RegisterFunction("append",    AppendFunction::evaluate);
   RegisterFunction("define",    DefineFunction::evaluate);

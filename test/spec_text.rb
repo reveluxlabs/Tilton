@@ -43,4 +43,23 @@ describe "A command line macro processor (in general)" do
     result.should.include "Missing ~>"
   end
 
+  it "should process UTF-8 demo text" do
+    # setup fixture
+    # execute SUT
+    result = %x[ ./tilton < test/UTF-8-demo.txt > UTF.txt]
+    result = %x[ diff test/UTF-8-demo.txt UTF.txt | wc ]
+    # verify results
+    result.should.include " 0 "
+    # tear down fixture
+    %x[ rm UTF.txt ]
+  end
+
+  it "should process UTF-8 macro name" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~define~→~->~><~→~><~→~>" |  ./tilton ]
+    # verify results
+    result.size.should.equal 5  # 4 chars + newline
+  end
+
 end

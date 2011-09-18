@@ -286,6 +286,30 @@ it "should process the include builtin with null args" do
     result.should.include "3"
   end
 
+  it "should process the length builtin with two byte UTF-8 characters" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~length~ععع~>" | ./tilton ]
+    # verify results
+    result.should.include "3"
+  end
+
+  it "should process the length builtin with three byte UTF-8 characters" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~length~⁄⁄⁄~>" | ./tilton ]
+    # verify results
+    result.should.include "3"
+  end
+
+  it "should process the length builtin with four byte UTF-8 characters" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~length~𐀀𐀀𐀀~>" | ./tilton ]
+    # verify results
+    result.should.include "3"
+  end
+
   it "should process the literal builtin" do
     # setup fixture
     # execute SUT
@@ -403,13 +427,36 @@ it "should process the include builtin with null args" do
     result.should.include "2"
   end
 
-  # TODO: check this for a bug
-  xit "should process the substr builtin" do
+  it "should process the substr builtin" do
     # setup fixture
     # execute SUT
     result = %x[ echo "<~substr~abcde~3~>" | ./tilton ]
     # verify results
     result.should.include "cde"
+  end
+
+  it "should process the subst builtin with two byte UTF-8 characters" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~substr~ععع~2~>" | ./tilton | wc ]
+    # verify results
+    result.should.include "5"  # two two-byte chars plus newline
+  end
+
+  it "should process the substr builtin with three byte UTF-8 characters" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~substr~⁄⁄⁄~2~>" | ./tilton | wc ]
+    # verify results
+    result.should.include "7"  # two three-byte chars plus newline
+  end
+
+  it "should process the substr builtin with four byte UTF-8 characters" do
+    # setup fixture
+    # execute SUT
+    result = %x[ echo "<~substr~𐀀𐀀𐀀~2~>" | ./tilton | wc ]
+    # verify results
+    result.should.include "9"  # two four-byte chars plus newline
   end
 
   it "should process the tilde builtin" do

@@ -17,13 +17,6 @@ typedef void (*Builtin)(Context* context, Text* &the_output);
 //  A Macro can have a link which can chain Macros
 //  together. This is used to manage hash collisions.
 
-//  The encoding of strings is UTF-8 (the 8-bit form of Unicode). A character
-//  is between 1 and 4 bytes in length. The utfLength and utfSubstr methods
-//  count multibyte characters. However, if a multibyte character appears to
-//  be badly formed, it will interpret the first byte as a single byte
-//  character. So while expecting UTF-8 encoded strings, it will usually
-//  do the right thing with Latin-1 and similar encodings.
-
 class Macro {
  public:
   Macro();

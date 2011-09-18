@@ -158,7 +158,7 @@ number Text::getNumber() {
   number value = 0;
 
   if (length_ == 0) {
-    return kNAN;  // joh 31Aug11
+    return kNAN;  // jr 31Aug11
   }
 
   for (;;) {
@@ -413,101 +413,71 @@ void Text::RemoveSpacesAddToString(Text* t) {
 
 
 int Text::utfLength() {
-    int c;
-    int i = 0;
-    int num = 0;
-    while (i < length_) {
-        c = string_[i] & 0xFF;
+  int index = 0;
+  int num = 0;
+  while (index < length_) {
+    index = AdvanceToNextChar(index);
+    num += 1;
+  }
+  return num;
+}
+
+int Text::AdvanceToNextChar(int i) {
+  int c;
+  c = string_[i] & 0xFF;
+  i += 1;
+  if (c >= 0xC0) {
+    if (c < 0xE0) {  // 2-byte form
+      // <= jr 18Sep11
+      if ((i + 1) <= length_ && ((string_[i] & 0xC0) == 0x80)) {
         i += 1;
-        if (c >= 0xC0) {
-            if (c < 0xE0) {  // 2-byte form
-                if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
-                    i += 1;
-                }
-            } else if (c < 0xF0) {  // 3-byte form
-                if ((i + 2) < length_ &&
-                        ((string_[i]     & 0xC0) == 0x80) &&
-                        ((string_[i + 1] & 0xC0) == 0x80)) {
-                    i += 2;
-                }
-            } else {  // 4-byte form
-                if ((i + 3) < length_ &&
-                        ((string_[i]     & 0xC0) == 0x80) &&
-                        ((string_[i + 1] & 0xC0) == 0x80) &&
-                        ((string_[i + 2] & 0xC0) == 0x80)) {
-                    i += 3;
-                }
-            }
-        }
-        num += 1;
+      }
+    } else if (c < 0xF0) {  // 3-byte form
+      // <= jr 18Sep11
+      if ((i + 2) <= length_ &&
+          ((string_[i]     & 0xC0) == 0x80) &&
+          ((string_[i + 1] & 0xC0) == 0x80)) {
+        i += 2;
+      }
+    } else {  // 4-byte form
+      // <= jr 18Sep11
+      if ((i + 3) <= length_ &&
+          ((string_[i]     & 0xC0) == 0x80) &&
+          ((string_[i + 1] & 0xC0) == 0x80) &&
+          ((string_[i + 2] & 0xC0) == 0x80)) {
+        i += 3;
+      }
     }
-    return num;
+  }
+  return i;
 }
 
 
-Text* Text::utfSubstr(int start, int len) {
-    int c;
-    int i = 0;
-    Text* t;
-    while (start) {
-        if (i >= length_) {
-            return NULL;
-        }
-        c = string_[i] & 0xFF;
-        i += 1;
-        if (c >= 0xC0) {
-            if (c < 0xE0) {  // 2-byte form
-                if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
-                    i += 1;
-                }
-            } else if (c < 0xF0) {  // 3-byte form
-                if ((i + 2) < length_ &&
-                        ((string_[i]     & 0xC0) == 0x80) &&
-                        ((string_[i + 1] & 0xC0) == 0x80)) {
-                    i += 2;
-                }
-            } else {  // 4-byte form
-                if ((i + 3) < length_ &&
-                        ((string_[i]     & 0xC0) == 0x80) &&
-                        ((string_[i + 1] & 0xC0) == 0x80) &&
-                        ((string_[i + 2] & 0xC0) == 0x80)) {
-                    i += 3;
-                }
-            }
-        }
-        start -= 1;
+Text* Text::utfSubstr(const int start, int len) {
+  int i = 0;
+  int j;
+  Text* t;
+  
+  // skip start UTF-8 chars in string
+  // start -1 fixes off by one bug with position -- jr 18Sep11
+  for (j=0; j < start - 1 ; j++) {
+    if (i >= length_) {
+      return NULL;
     }
-    t = new Text(length_ - i);
-    while (len && i < length_) {
-        c = string_[i] & 0xFF;
-        i += 1;
-        t->AddToString(c);
-        if (c >= 0xC0) {
-            if (c < 0xE0) {  // 2-byte form
-                if ((i + 1) < length_ && ((string_[i] & 0xC0) == 0x80)) {
-                    t->AddToString(string_[i]);
-                    i += 1;
-                }
-            } else if (c < 0xF0) {  // 3-byte form
-                if ((i + 2) < length_ &&
-                        ((string_[i]     & 0xC0) == 0x80) &&
-                        ((string_[i + 1] & 0xC0) == 0x80)) {
-                    t->AddToString(&string_[i], 2);
-                    i += 2;
-                }
-            } else {  // 4-byte form
-                if ((i + 3) < length_ &&
-                        ((string_[i]     & 0xC0) == 0x80) &&
-                        ((string_[i + 1] & 0xC0) == 0x80) &&
-                        ((string_[i + 2] & 0xC0) == 0x80)) {
-                    t->AddToString(&string_[i], 3);
-                    i += 3;
-                }
-            }
-        }
-        len -= 1;
-    }
-    return t;
+    i = AdvanceToNextChar(i);
+  }
+  
+  // make a new string
+  t = new Text(length_ - i);
+  
+  // and copy UTF-8 chars
+  while (len && i < length_) {
+    j = AdvanceToNextChar(i);
+    t->AddToString(&string_[i], j-i);
+    i = j;
+    len -= 1;
+  }
+  return t;
 }
 
 
