@@ -217,6 +217,7 @@ void Context::SetMacroVariable(int varNo, Text* t) {
   o->text_ = NULL;
   delete o->value_;
   // o->value[varNo] = new Text(t);
+  // previous bug fix -- jr 19Sep11
   o->value_ = new Text(t);
 }
 
@@ -324,7 +325,7 @@ void Context::FindError(Text* report) {
     previous_->FindError(report);
   }
   if (source_) {
-//    report->AddToString(source_->text()); //->name_, source_->text()->name_length_);
+    report->AddToString(source_->text()->name_, source_->text()->name_length_);
     report->AddToString('(');
     report->AddNumberToString(line_ + 1);
     report->AddToString(',');

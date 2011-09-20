@@ -28,13 +28,14 @@ This makes Tilton uncommonly good at dealing with textual content.
 The character set used by Tilton is the UTF-8 form of Unicode. Tilton's character functions 
 (length and substr) deal in whole Unicode characters, not in bytes.
 
-The [original](http://www.crockford.com/tilton/) for Tilton was written by 
+The [original source](http://www.crockford.com/tilton/) for Tilton was written by 
 [Douglas Crockford](http://www.crockford.com/) of Javascript fame.
 This version has been:
 
 *  Ported to OS X
 *  Supplemented with automated tests
-*  Refactored for better understanding.
+*  Debugged further
+*  Refactored for better maintainability.
 
 Easy
 ----
@@ -402,8 +403,7 @@ These are the built-in macros:
 
                  Both position and length must be numbers or it is an error. Length is optional. 
                  A substring is produced. position identifies the first character of the substring. 
-                 If it is zero, then the substring includes the first character of the string. The 
-                 result may be shorter than the requested length. UTF-8 encoding.
+                 The result may be shorter than the requested length. UTF-8 encoding.
 
 
     tilde     -  <~tilde~>
@@ -517,8 +517,8 @@ The message will contain a header
 
     sourceFile(lineNumber,columnNumber/characterNumber):
 
-The header will contain an entry for each level in Tilton's stack. I hope 
-that this will provide enough information to identify the cause of the error.
+The header will contain an entry for each level in Tilton's stack. This
+should provide enough information to identify the cause of the error.
 
 
 The Tilton Macro Processor is named for the famous Christian Recreationalist, 
@@ -526,6 +526,25 @@ TV's Robert Tilton. He was selected for this honor on account of his name
 miraculously containing many of the same letters as the word "tilde", the 
 most important character in this language. Robert Tilton is himself something 
 of a linguist, being fluent in the speaking of tongues.
+
+Development & Testing
+---------------------
+
+Tilton is written in c++.
+
+The Ruby-based [Rake Build Language](http://martinfowler.com/articles/rake.html) is 
+used to support development and testing. Tilton has been successfully
+built on both Mac OS X and Debian 6.
+
+The command
+
+    rake -T
+
+will describe the available build commands. The rake lint option assumes
+that Google's [cpplint tool](http://code.google.com/p/google-styleguide/source/browse/trunk/cpplint/)
+ is available in the path.
+
+The xUnit tests were written using the test-spec gem, which appears to require Ruby 1.8.7.
 
 Boring Legal Stuff
 ------------------

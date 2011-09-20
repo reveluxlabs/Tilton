@@ -319,12 +319,14 @@ it "should process the include builtin with null args" do
   end
 
   it "should process the loop builtin" do
-    # TODO: fix
     # setup fixture
     # execute SUT
-    result = %x[ echo "<~div~6~3~>" | ./tilton ]
+    result = %x[ echo "<~1~xxx~><~loop~<~1~>~<~print~Hello, world!~><~1~<~substr~<~1~>~2~>~>~>" | ./tilton 2>loop.txt ]
+    result = %x[ wc loop.txt ]
     # verify results
-    result.should.include "2"
+    result.should.include "60"
+    # tear down fixture
+    %x[ rm loop.txt ]
   end
 
   it "should process the lt builtin" do
@@ -367,11 +369,10 @@ it "should process the include builtin with null args" do
     result.should.equal "\n"
   end
 
-  # TODO: check this for a bug
-  xit "should process the number? builtin" do
+  it "should process the number? builtin" do
     # setup fixture
     # execute SUT
-    result = %x[ echo "<~number?~1.618~yes~no~>" | ./tilton ]
+    result = %x[ echo "<~number?~1618~yes~no~>" | ./tilton ]
     # verify results
     result.should.include "yes"
   end
